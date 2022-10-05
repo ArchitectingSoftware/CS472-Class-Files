@@ -1,0 +1,6 @@
+/Users/bsm/drexel/class/cs472/code/CS472-Class-Files/socket-tutorial/CMakeFiles/client.dir
+/Users/bsm/drexel/class/cs472/code/CS472-Class-Files/socket-tutorial/CMakeFiles/server.dir
+/Users/bsm/drexel/class/cs472/code/CS472-Class-Files/socket-tutorial/CMakeFiles/server2.dir
+/Users/bsm/drexel/class/cs472/code/CS472-Class-Files/socket-tutorial/CMakeFiles/server3.dir
+/Users/bsm/drexel/class/cs472/code/CS472-Class-Files/socket-tutorial/CMakeFiles/edit_cache.dir
+/Users/bsm/drexel/class/cs472/code/CS472-Class-Files/socket-tutorial/CMakeFiles/rebuild_cache.dir

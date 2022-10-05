@@ -1,0 +1,31 @@
+Protocol Header
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | PROTO |  VER  |  CMD  |DIR|ATM|     AY: Academic Year         |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |             CC1: Course Code (First 4 Chars)                  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |       CC2: Course Code (Last 3 Chars)         |LEN: Msg Length|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                     MSG: Message Data*                        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+Field Values
+------------
+PROTO  Protocol Name  CS472-FUN Protocol is the only allowed value with 0x1
+VER    Protocol Version Current Version is 0x1
+CMD    Protocol Command - Allowed Values are:
+           - 0x1: Get Class Info
+           - 0x3: Ping my Pong
+DIR    Direction - 0x0 for Send and 0x1 for Response
+AY     Academic Year, Unsigned 16 bit number of the start of the year, we are
+       in AY 2022
+CC1    First 4 characters of the course code, each character is an ASCII 
+       Character value - so for CS472 - this would include CS47
+CC2    Last 3 characters of the course code.  Pad with ZEROs, so for CS472
+       this would be 2\0\0
+LEN    The length of the message that follows the header in bytes, up to
+       250 on a request, becuase a response will add PONG::, which is 6
+       characters resulting in a max of 256 characters. 
