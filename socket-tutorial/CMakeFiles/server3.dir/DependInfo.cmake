@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/Users/bsm/drexel/class/cs472/code/CS472-Class-Files/socket-tutorial/server3.c" "CMakeFiles/server3.dir/server3.c.o" "gcc" "CMakeFiles/server3.dir/server3.c.o.d"
+  "/Users/bsm23/drexel/class/cs472/code/CS472-Class-Files/socket-tutorial/server3.c" "CMakeFiles/server3.dir/server3.c.o" "gcc" "CMakeFiles/server3.dir/server3.c.o.d"
   )
 
 # Targets to which this target links.

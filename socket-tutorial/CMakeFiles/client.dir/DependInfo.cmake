@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/Users/bsm/drexel/class/cs472/code/CS472-Class-Files/socket-tutorial/client.c" "CMakeFiles/client.dir/client.c.o" "gcc" "CMakeFiles/client.dir/client.c.o.d"
+  "/Users/bsm23/drexel/class/cs472/code/CS472-Class-Files/socket-tutorial/client.c" "CMakeFiles/client.dir/client.c.o" "gcc" "CMakeFiles/client.dir/client.c.o.d"
   )
 
 # Targets to which this target links.
