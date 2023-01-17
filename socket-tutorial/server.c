@@ -95,7 +95,7 @@ static void start_server(){
      * to 20. So while one request is being processed other requests
      * can be waiting.
      */
-    ret = listen(listen_socket, 1);
+    ret = listen(listen_socket, 20);
     if (ret == -1) {
         perror("listen");
         exit(EXIT_FAILURE);
