@@ -110,7 +110,8 @@ For this component of the assignment think about the above and provide a short w
 
 1. What would the PDU look like for both protocol layers?
 2. Could you reuse the Class Information Protocol as provided, or would you change it to support the Course Registration Protocol. 
-3. If you decided to extend the lower protocol, why did you make this decision vs putting the new functionality in the Course Registration Protocol. 
+3. How would requests and responses be properly managed via the PDU?
+4. If you decided to extend the lower protocol, why did you make this decision vs putting the new functionality in the Course Registration Protocol. 
 
 ### Extra Credit (Variable Points)
 For extra credit you can partially implement the course registration protocol.  At the minimum you must implement the PDU and show how the messages flow properly between the client and server.  
