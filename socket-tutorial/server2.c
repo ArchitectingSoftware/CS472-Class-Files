@@ -69,6 +69,11 @@ static void process_requests(int listen_socket){
             perror("read error");
             exit(EXIT_FAILURE);
         }
+
+        if (*recv_buffer == 'A')
+            sleep(0);
+        else
+            sleep(15);
  
         int buff_len = sprintf((char *)send_buffer, "THANK YOU -> %s", recv_buffer);
 

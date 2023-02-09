@@ -26,7 +26,7 @@
  * This function processes individual requests in threads
  */
 void *connection_handler(void *socket_handle){
-    int sock = *(int *)socket_handle;
+    int sock = *((int *)socket_handle);
     int ret = 0;
 
     // some thread local buffers for the messages - this has to be local to the thread
