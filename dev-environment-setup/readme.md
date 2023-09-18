@@ -1,1 +1,0 @@
-This repo contains information that will allow you to run C code in a dockerized unix environment.  Its is required for windows users, and might be helpful to Mac develops as well. 

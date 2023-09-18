@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) Launch",
+            "name": "HW1-Dbg",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/hello",
+            "program": "${workspaceFolder}/src/CS472-Class-Files/hw1-shell/decoder",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
@@ -21,13 +21,8 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 },
-                {
-                    "description": "Set Disassembly Flavor to Intel",
-                    "text": "-gdb-set disassembly-flavor intel",
-                    "ignoreFailures": true
-                }
             ]
-        }
-
+        },
+       
     ]
 }
