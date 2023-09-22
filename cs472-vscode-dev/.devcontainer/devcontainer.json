@@ -1,7 +1,8 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/cpp
 {
-	"name": "C++",
+	"name": "CS472-Dev",
+	"runArgs": ["--name", "cs472-devcontainer"],
 	"build": {
 		"dockerfile": "Dockerfile"
 	}
