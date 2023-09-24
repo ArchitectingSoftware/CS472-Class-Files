@@ -40,3 +40,7 @@ creating and manipulating structures, working with buffers, pointers, etc.
 
 If you find yourself struggling, you are not stupid.  You just need a refresher on systems programming in C.  I will be doing some office hours to help refresh your memory on C programming during the first two weeks - no need to attend if you are comfortable with these things, but please make it a priority to attend if you dont
 understand what is going on. 
+
+I also put a **TON** of documentation in the code to help you.  To make things
+easier on the grader, please thin out the documentation in your submission, removing
+mine and putting in documentation relevant to your specific implementation.
