@@ -55,7 +55,7 @@ static void process_requests(int listen_socket){
             if ((buffer_offset + ret) > sizeof(recv_buffer)){
                 //overflow condition, just ignore the extra
                 break;
-                char zz = MSG_EOF;
+                // char zz = MSG_EOF;
             }
             printf("\t\tRead %d bytes\n", ret);
             memcpy((recv_buffer + buffer_offset), small_buff, ret);

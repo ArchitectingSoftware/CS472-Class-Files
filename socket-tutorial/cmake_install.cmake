@@ -1,4 +1,4 @@
-# Install script for directory: /Users/bsm23/drexel/class/cs472/code/CS472-Class-Files/socket-tutorial
+# Install script for directory: /Users/bsm23/course-code/CS472-Class-Files/socket-tutorial
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/bsm23/drexel/class/cs472/code/CS472-Class-Files/socket-tutorial/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

@@ -162,7 +162,8 @@ typedef struct ip_pdu{
   uint8_t type_of_service;
   ube16_t total_length;
   ube16_t identification;
-  ube16_t flags_and_fragment_offset;
+  uint8_t flags;
+  uint8_t fragment_offset;
   uint8_t time_to_live;
   uint8_t protocol;
   ube16_t header_checksum;

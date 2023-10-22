@@ -1,0 +1,26 @@
+[
+{
+  "directory": "/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/build",
+  "command": "/usr/bin/clang   -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -mmacosx-version-min=13.6 -o CMakeFiles/client.dir/client.c.o -c /Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/client.c",
+  "file": "/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/client.c",
+  "output": "CMakeFiles/client.dir/client.c.o"
+},
+{
+  "directory": "/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/build",
+  "command": "/usr/bin/clang   -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -mmacosx-version-min=13.6 -o CMakeFiles/server.dir/server.c.o -c /Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/server.c",
+  "file": "/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/server.c",
+  "output": "CMakeFiles/server.dir/server.c.o"
+},
+{
+  "directory": "/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/build",
+  "command": "/usr/bin/clang   -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -mmacosx-version-min=13.6 -o CMakeFiles/server2.dir/server2.c.o -c /Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/server2.c",
+  "file": "/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/server2.c",
+  "output": "CMakeFiles/server2.dir/server2.c.o"
+},
+{
+  "directory": "/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/build",
+  "command": "/usr/bin/clang   -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -mmacosx-version-min=13.6 -o CMakeFiles/server3.dir/server3.c.o -c /Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/server3.c",
+  "file": "/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/server3.c",
+  "output": "CMakeFiles/server3.dir/server3.c.o"
+}
+]

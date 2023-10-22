@@ -1,0 +1,6 @@
+/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/build/CMakeFiles/client.dir
+/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/build/CMakeFiles/server.dir
+/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/build/CMakeFiles/server2.dir
+/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/build/CMakeFiles/server3.dir
+/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/build/CMakeFiles/edit_cache.dir
+/Users/bsm23/course-code/CS472-Class-Files/socket-tutorial/build/CMakeFiles/rebuild_cache.dir
