@@ -25,8 +25,8 @@
  *          return -1;
  *  
  */
-u_int16_t  prepare_req_packet(cs472_proto_header_t *header, 
-            uint8_t *payload, u_int8_t pay_length, uint8_t *packet,
+uint16_t  prepare_req_packet(cs472_proto_header_t *header, 
+            uint8_t *payload, uint8_t pay_length, uint8_t *packet,
             uint16_t packet_len ){
 
     uint16_t packet_sz = sizeof(cs472_proto_header_t) + pay_length;

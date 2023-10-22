@@ -71,14 +71,14 @@ typedef struct cs472_proto_header_t{
              atm   : 2,
              ay    :16;
     char     course[7];
-    u_int8_t len;
+    uint8_t len;
 } cs472_proto_header_t;
 
 //Prototypes for the helper functions
 //
 void print_proto_header(cs472_proto_header_t *h);
-u_int16_t  prepare_req_packet(cs472_proto_header_t *header, 
-            uint8_t *payload, u_int8_t pay_length, uint8_t *packet,
+uint16_t  prepare_req_packet(cs472_proto_header_t *header, 
+            uint8_t *payload, uint8_t pay_length, uint8_t *packet,
             uint16_t packet_len );
 uint8_t  process_recv_packet(cs472_proto_header_t *header, 
             uint8_t *buffer, uint8_t **msg, uint8_t *msgLen );
