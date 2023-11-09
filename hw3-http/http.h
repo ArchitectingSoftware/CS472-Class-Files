@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 
 #define     DEFAULT_HOST    "httpbin.org"
 #define     DEFAULT_PORT    80
@@ -23,3 +24,7 @@ int get_http_header_len(char *http_buff, int http_buff_len);
 int get_http_content_len(char *http_buff, int http_buff_len);
 int process_http_header(char *http_buff, int http_buff_len, int *header_len, int *content_len);
 void print_header(char *http_buff, int http_header_len);
+
+//Utilities
+char *strnstr(const char *s, const char *find, size_t slen);
+char *strcasestr(const char *s, const char *find);

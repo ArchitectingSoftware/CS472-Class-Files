@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stddef.h>
 
 #include <netinet/tcp.h>
 #include <sys/socket.h>
@@ -34,6 +35,45 @@
 // credit. 
 //--------------------------------------------------------------------------------
 
+char *strcasestr(const char *s, const char *find)
+{
+	char c, sc;
+	size_t len;
+
+	if ((c = *find++) != 0) {
+		c = tolower((unsigned char)c);
+		len = strlen(find);
+		do {
+			do {
+				if ((sc = *s++) == 0)
+					return (NULL);
+			} while ((char)tolower((unsigned char)sc) != c);
+		} while (strncasecmp(s, find, len) != 0);
+		s--;
+	}
+	return ((char *)s);
+}
+
+char *strnstr(const char *s, const char *find, size_t slen)
+{
+	char c, sc;
+	size_t len;
+
+	if ((c = *find++) != '\0') {
+		len = strlen(find);
+		do {
+			do {
+				if ((sc = *s++) == '\0' || slen-- < 1)
+					return (NULL);
+			} while (sc != c);
+			if (len > slen)
+				return (NULL);
+		} while (strncmp(s, find, len) != 0);
+		s--;
+	}
+	return ((char *)s);
+}
+
 
 int socket_connect(const char *host, uint16_t port){
     struct hostent *hp;
@@ -44,7 +84,9 @@ int socket_connect(const char *host, uint16_t port){
 		herror("gethostbyname");
 		return -2;
 	}
-	bcopy(hp->h_addr, &addr.sin_addr, hp->h_length);
+    
+    
+	bcopy(hp->h_addr_list[0], &addr.sin_addr, hp->h_length);
 	addr.sin_port = htons(port);
 	addr.sin_family = AF_INET;
 	sock = socket(PF_INET, SOCK_STREAM, 0); 
@@ -90,6 +132,7 @@ int get_http_content_len(char *http_buff, int http_header_len){
         bzero(header_line,sizeof(header_line));
         sscanf(next_header_line,"%[^\r\n]s", header_line);
 
+        char *isCLHeader2 = strcasecmp(header_line,CL_HEADER);
         char *isCLHeader = strcasestr(header_line,CL_HEADER);
         if(isCLHeader != NULL){
             char *header_value_start = strchr(header_line, HTTP_HEADER_DELIM);
