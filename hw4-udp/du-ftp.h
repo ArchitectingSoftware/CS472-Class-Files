@@ -3,7 +3,7 @@
 #define PROG_MD_CLI     0
 #define PROG_MD_SVR     1
 #define DEF_PORT_NO     2080
-#define FNAME_SZ        128
+#define FNAME_SZ        150
 #define PROG_DEF_FNAME  "test.c"
 #define PROG_DEF_SVR_ADDR   "127.0.0.1"
 

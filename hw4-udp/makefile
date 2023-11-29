@@ -14,5 +14,5 @@ all: du-ftp
 du-ftp: ./objs/du-ftp.o ./objs/du-proto.o
 	$(CC) $(CFLAGS) ./objs/du-proto.o ./objs/du-ftp.o -o du-ftp
 
-run: du-proto
+run:
 	./du-ftp

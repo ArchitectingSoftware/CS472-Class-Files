@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <sys/socket.h>
 #include <sys/un.h>
 #include <time.h>
 
@@ -60,11 +61,11 @@ dp_connp dpServerInit(int port) {
     servaddr->sin_port = htons(port); 
 
     // Set socket options so that we dont have to wait for ports held by OS
-    if (setsockopt(*sock, SOL_SOCKET, SO_REUSEPORT, &(int){1}, sizeof(int)) < 0){
-        perror("setsockopt(SO_REUSEADDR) failed");
-        close(*sock);
-        return NULL;
-    }
+    // if (setsockopt(*sock, SOL_SOCKET, SO_REUSEPORT, &(int){1}, sizeof(int)) < 0){
+    //     perror("setsockopt(SO_REUSEADDR) failed");
+    //     close(*sock);
+    //     return NULL;
+    // }
     if (setsockopt(*sock, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0){
         perror("setsockopt(SO_REUSEADDR) failed");
         close(*sock);

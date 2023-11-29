@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <getopt.h>
 
 #include "du-ftp.h"
 #include "du-proto.h"
