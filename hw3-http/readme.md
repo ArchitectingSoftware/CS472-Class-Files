@@ -4,7 +4,7 @@
 
 >**NOTE there is a lot to read here, but dont freak out, there is not a lot to do**
 
-For this assignment you will be building 2 versions of an operational HTTP client.  The client should work with a real HTTP server. Testing for the purposes of grading will be using httbin.org, although you can use whatever server you want for development, so long as it supports non-encrypted HTTP vs encrypted HTTPs.
+For this assignment you will be building 2 versions of an operational HTTP client.  The client should work with a real HTTP server. Testing for the purposes of grading will be using httpbin.org, although you can use whatever server you want for development, so long as it supports non-encrypted HTTP vs encrypted HTTPs.
 
 Note that the make file includes test suites for the 2 versions of the program you will be implementing.  More on this in a bit.
 
@@ -37,7 +37,7 @@ where:
 
 Also note that the interface can support getting multiple resources from the server, for example
 
-client-xx httpbin.org 80 / /json /http will make 3 requests to the server, one to get the root "http://httbin.org/", one to get json "http://httpbin.org/json" and one to get html "http://httpbin.org/html".  
+client-xx httpbin.org 80 / /json /http will make 3 requests to the server, one to get the root "http://httpbin.org/", one to get json "http://httpbin.org/json" and one to get html "http://httpbin.org/html".  
 
 Note that you can have as many resources as you want, the above example is just for 3.
 
