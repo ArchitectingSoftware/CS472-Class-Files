@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "server3"
+			"path" : "server2"
 		}
 	],
 	"backtrace" : 1,
@@ -24,7 +24,7 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 10,
+				"line" : 9,
 				"parent" : 0
 			}
 		]
@@ -35,7 +35,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -mmacosx-version-min=13.6"
+					"fragment" : "-g -arch arm64 -mmacosx-version-min=13.6"
 				}
 			],
 			"language" : "C",
@@ -45,7 +45,7 @@
 			]
 		}
 	],
-	"id" : "server3::@6890427a1f51a3e7e1df",
+	"id" : "server2::@6890427a1f51a3e7e1df",
 	"link" : 
 	{
 		"commandFragments" : 
@@ -61,8 +61,8 @@
 		],
 		"language" : "C"
 	},
-	"name" : "server3",
-	"nameOnDisk" : "server3",
+	"name" : "server2",
+	"nameOnDisk" : "server2",
 	"paths" : 
 	{
 		"build" : ".",
@@ -83,7 +83,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "server3.c",
+			"path" : "server2.c",
 			"sourceGroupIndex" : 0
 		}
 	],

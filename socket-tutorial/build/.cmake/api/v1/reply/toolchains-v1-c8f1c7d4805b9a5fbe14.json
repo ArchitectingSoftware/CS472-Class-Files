@@ -11,15 +11,18 @@
 					"includeDirectories" : 
 					[
 						"/Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include",
-						"/Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/usr/include",
+						"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",
 						"/Library/Developer/CommandLineTools/usr/include"
 					],
-					"linkDirectories" : [],
+					"linkDirectories" : 
+					[
+						"/usr/local/lib"
+					],
 					"linkFrameworkDirectories" : [],
 					"linkLibraries" : []
 				},
 				"path" : "/usr/bin/clang",
-				"version" : "15.0.0.15000040"
+				"version" : "15.0.0.15000100"
 			},
 			"language" : "C",
 			"sourceFileExtensions" : 
@@ -36,12 +39,15 @@
 				{
 					"includeDirectories" : 
 					[
-						"/Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/usr/include/c++/v1",
+						"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1",
 						"/Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include",
-						"/Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk/usr/include",
+						"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",
 						"/Library/Developer/CommandLineTools/usr/include"
 					],
-					"linkDirectories" : [],
+					"linkDirectories" : 
+					[
+						"/usr/local/lib"
+					],
 					"linkFrameworkDirectories" : [],
 					"linkLibraries" : 
 					[
@@ -49,7 +55,7 @@
 					]
 				},
 				"path" : "/usr/bin/clang++",
-				"version" : "15.0.0.15000040"
+				"version" : "15.0.0.15000100"
 			},
 			"language" : "CXX",
 			"sourceFileExtensions" : 
