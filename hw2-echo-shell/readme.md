@@ -78,42 +78,14 @@ RECV FROM SERVER -> Requested Course Not Found
 
 ### (25% Question Component) Written Assignment Questions
 
-The programming component of this assignment is worth 75% of your grade.  The written component is worth 25%.  When you hand in your source code, please provide a file that answers the following question. You can use diagrams, bullets, or write a few paragraphs.
+The programming component of this assignment is worth 75% of your grade.  The written component is worth 25%.  When you hand in your source code, please provide a pdf or word document that addresses the following: 
 
-In class we have talked about layering and extending protocols with other protocols.  For example, TCP/IP - TCP extends IP by riding on top of it.  IP is responsible for getting data from point A to point B over the Internet, and TCP layers on top of IP to provide a reliable transport stream.
+I am not sure how many of you have even herd of Vint Cerf.  Vint is a touring award winner, and is the co-inventor of both TCP,TCP/IP, ARPANET, and is generally considered the father of the Internet.  Vint is a gift to our industry, still very active at almost 80 years old.  I had the opportunity to sit down with him in a 1:1 meeting to help give him background for a conference I organized where he was a featured keynote, and it was certainly a highlight of my career. 
 
-The protocol for this assignment enables requests for class information to flow from the client to the server. Lets pretend we want to extend this protocol to a course registration protocol that adheres to the following architecture:
+For this assignment I want you to watch the YouTube video linked below.  This video is from a Keynote talk that Vint did at a conference in 2022 where he reviewed the history of the Internet, and some of his contributions and observations.
+YouTube Link:  https://www.youtube.com/watch?v=lWyv4wU-WNA
 
-```
-+--------------------------------------+
-|    COURSE REGISTRATION PROTOCOL      |
-+--------------------------------------+
-|     CLASS INFORMATION PROTOCOL       |
-+--------------------------------------+
-```
+After watching this video, please do a short writeup addressing the following prompts:
 
-Similar to TCP/IP, the course information protocol will ride on top of the class information protocol. 
-
-Your writeup needs to describe how you would design a solution that implements a course registration protocol.  Think about your own experience.  This protocol would need to address things like:
-
-- Is the course offered during the term and academic year when I am trying to register?
-- Does the course offered have multiple sections?
-- What day/time is the course offered for each available section?
-- Does the course have pre-requisites?
-- How many seats are available in total, how many seats are remaining?
-- As a student I want to formally register for an offered course.
-- If the course is full, or I dont fully meet the pre-requisites, I would like to request an override to get into the course.
-
-There are probably other things, this is just a starter list.  
-
-For this component of the assignment think about the above and provide a short writeup on how you would address creating the Course Registration Protocol stacked on top of the Class Information Protocol.  Specifically define:
-
-1. What would the PDU look like for both protocol layers?
-2. Could you reuse the Class Information Protocol as provided, or would you change it to support the Course Registration Protocol. 
-3. How would requests and responses be properly managed via the PDU?
-4. If you decided to extend the lower protocol, why did you make this decision vs putting the new functionality in the Course Registration Protocol. 
-
-### Extra Credit (Variable Points)
-For extra credit you can partially implement the course registration protocol.  At the minimum you must implement the PDU and show how the messages flow properly between the client and server.  
-
-The amount of extra credit awarded will depend on how much of the implementation your provide - the more feature/function, the more credit :-)
+1. If you had the opportunity to ask Vint one thing what would that be?
+2. What is one thing of interest you took away from this video?
