@@ -1,6 +1,6 @@
 #include "cs472-proto.h"
 #include <stdio.h>
-#include <strings.h>
+#include <string.h>
 
 /*
  *  This helper prepares the request packet, it takes a number of parameters:

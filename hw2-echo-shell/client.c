@@ -9,6 +9,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/un.h>
+#include <getopt.h>
 
 #define BUFF_SZ 512
 static uint8_t send_buffer[BUFF_SZ];
@@ -172,7 +173,9 @@ int main(int argc, char *argv[])
             prepare_req_packet(&header, 0, 0, send_buffer, sizeof(send_buffer));
             break;
         case CMD_PING_PONG:
-            prepare_req_packet(&header,(uint8_t *)cmdData, strlen(cmdData), 
+            //add the +1 to send the null byte this way we can treat as a 
+            //c string
+            prepare_req_packet(&header,(uint8_t *)cmdData, strlen(cmdData)+1, 
                 send_buffer, sizeof(send_buffer));
             break;
         default:
