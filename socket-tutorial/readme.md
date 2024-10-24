@@ -1,5 +1,14 @@
 ## Review of Socket Programming in C
 
+### Build Information
+
+To rebuild:
+
+```sh
+make clean
+make
+```
+
 ### Overview
 
 This repo includes a client program and 3 different server implementations.  The client sends a string to the server.  To run the client:

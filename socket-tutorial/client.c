@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
         strcpy(send_buffer, argv[1]);
 
     //append an EOF character, we will use this in server 2
-    strncat(send_buffer, EOF_CHAR_STR, 1);
+    strncat(send_buffer, EOF_CHAR_STR, 2);
 
     //start the client
     start_client( send_buffer);

@@ -52,7 +52,8 @@ static void process_requests(int listen_socket){
             exit(EXIT_FAILURE);
         }
  
-        int buff_len = sprintf((char *)send_buffer, "THANK YOU -> %s", recv_buffer);
+        int buff_len = snprintf((char *)send_buffer, 
+                sizeof(send_buffer), "THANK YOU -> %s", recv_buffer);
 
         //now string out buffer has the length
         send (data_socket, send_buffer, buff_len, 0);
