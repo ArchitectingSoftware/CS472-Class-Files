@@ -4,10 +4,8 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
-        
         {
-            "name": "HW1-Debug",
+            "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/decoder",
@@ -29,18 +27,6 @@
                     "ignoreFailures": true
                 }
             ]
-        },
-        {
-            "name": "decoder",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/decoder",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${fileDirname}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "lldb"
         }
 
     ]

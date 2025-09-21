@@ -57,6 +57,7 @@ static void process_requests(int listen_socket){
 
         //now string out buffer has the length
         send (data_socket, send_buffer, buff_len, 0);
+
         close(data_socket);
     }
 }

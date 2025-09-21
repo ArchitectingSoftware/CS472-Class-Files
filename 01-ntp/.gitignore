@@ -1,0 +1,63 @@
+ntp-client
+
+#C
+# Compiled Object files
+*.o
+*.obj
+
+# Executables
+*.exe
+*.out
+*.bin
+
+# Libraries
+*.lib
+*.a
+*.so
+*.dll
+
+# Debugging and Temporary Files
+*.gch
+*.swp
+*~
+*.bak
+*.tmp
+
+# IDE specific files (e.g., for Visual Studio Code)
+.vscode/
+
+# Build directories
+build/
+bin/
+obj/
+
+#MAC
+# macOS system files
+.DS_Store
+.Trashes
+.Spotlight-V100
+.TemporaryItems
+.fseventsd
+
+# macOS application files
+.localized
+Icon?
+Thumbs.db # Windows-specific, but often found in shared projects
+
+# Xcode-related files (if applicable)
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcuserdatad/
+DerivedData/
+build/
+*.hmap
+*.ipa
+*.dSYM
+
+# Other common files/directories to ignore
+.idea/ # IntelliJ IDEA project files
+.vscode/ # VS Code settings
+*.log
+*.swp
+*~
+
