@@ -23,8 +23,6 @@ ntp-client
 *.bak
 *.tmp
 
-# IDE specific files (e.g., for Visual Studio Code)
-.vscode/
 
 # Build directories
 build/
