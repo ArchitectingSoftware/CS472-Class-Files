@@ -55,8 +55,6 @@ build/
 *.dSYM
 
 # Other common files/directories to ignore
-.idea/ # IntelliJ IDEA project files
-.vscode/ # VS Code settings
 *.log
 *.swp
 *~
