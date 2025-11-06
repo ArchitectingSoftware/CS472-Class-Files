@@ -22,21 +22,21 @@ run-ka:
 run-ka3:
 	./client-ka httpbin.org 80 / /json /html
 
-.PHONY: run-cc-aws
-run-cc-aws:
-	./client-cc ec2-98-94-0-172.compute-1.amazonaws.com 80 /
+.PHONY: run-cc-cci
+run-cc-cci:
+	./client-cc cci-p141.cci.drexel.edu 80 /
 
-.PHONY: run-cc3-aws
-run-cc3-aws:
-	./client-cc ec2-98-94-0-172.compute-1.amazonaws.com 80 / /json /html
+.PHONY: run-cc3-cci
+run-cc3-cci:
+	./client-cc cci-p141.cci.drexel.edu 80 / /json /html
 
-.PHONY: run-ka-aws
-run-ka-aws:
-	./client-ka ec2-98-94-0-172.compute-1.amazonaws.com 80 /
+.PHONY: run-ka-cci
+run-ka-cci:
+	./client-ka cci-p141.cci.drexel.edu 80 /
 
-.PHONY: run-ka3-aws
-run-ka3-aws:
-	./client-ka ec2-98-94-0-172.compute-1.amazonaws.com 80 / /json /html
+.PHONY: run-ka3-cci
+run-ka3-cci:
+	./client-ka cci-p141.cci.drexel.edu 80 / /json /html
 
 .PHONY: clean
 clean:
