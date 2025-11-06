@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 #define     DEFAULT_HOST    "httpbin.org"
+#define     DEFAULT_HOST_2  "http://ec2-98-94-0-172.compute-1.amazonaws.com"
 #define     DEFAULT_PORT    80
 #define     DEFAULT_PATH    "/"
 
