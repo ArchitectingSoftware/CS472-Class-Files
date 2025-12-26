@@ -129,7 +129,7 @@ An **epoch** is simply the starting point for counting time in a computer system
 - Right now: ~1727789000 seconds since 1970
 - Why 1970? Unix was developed in early 1970s
 
-**NTP Time (used by time servers):**  
+**NTP Time (used by time servers):**
 - Starts: January 1, 1900, 00:00:00 UTC
 - Right now: ~3936777800 seconds since 1900
 - Why 1900? Covers entire 20th century and beyond
@@ -146,82 +146,27 @@ starts          starts
 ```
 
 **The Conversion:**
-- NTP_EPOCH_OFFSET = 2,208,988,800 seconds = exactly 70 years
-- Your Code Will Do This:
-  - unix_time = ntp_time - 2208988800    // NTP to Unix
-  - ntp_time = unix_time + 2208988800    // Unix to NTP
+```
+NTP_EPOCH_OFFSET = 2,208,988,800 seconds = exactly 70 years
 
-**MEMORY TRICK: NTP time is always BIGGER (it started counting earlier)**
+Your Code Will Do This:
+unix_time = ntp_time - 2208988800    // NTP to Unix
+ntp_time = unix_time + 2208988800    // Unix to NTP
 
-**Why This Matters**: When you get an NTP timestamp, you must convert it to Unix time by subtracting the difference between epochs (2,208,988,800 seconds = 70 years). Your code will frequently convert between these two time systems.
+MEMORY TRICK: NTP time is always BIGGER (it started counting earlier)
+```
 
-**NTP Time Representation:**
-- **32-bit seconds**: Whole seconds since 1900
-- **32-bit fraction**: Fractional seconds (1/2³² increments ≈ 232 picoseconds)
+NTP timestamps contain:
+- **Transmit Timestamp**: When the packet was sent
+- **Receive Timestamp**: When the server received your request
+- **Reference Timestamp**: When the server's clock was last synchronized
+- **Originate Timestamp**: Echo of client's transmit time
 
-This gives NTP incredible precision while covering a 136-year time range.
+Each timestamp is 64 bits (8 bytes):
+- **32 bits**: Seconds since January 1, 1900
+- **32 bits**: Fractional seconds (1/2³² resolution ≈ 232 picoseconds)
 
-The packet contains four timestamps:
-- **Reference Timestamp**: When the server's clock was last set
-- **Origin Timestamp**: Client's transmit time (T1)
-- **Receive Timestamp**: Server's receive time (T2)
-- **Transmit Timestamp**: Server's transmit time (T3)
-
-### Network Byte Order
-
-**Critical**: All multi-byte fields must be in network byte order (big-endian). Use `htonl()` when creating packets and `ntohl()` when reading them.
-
-### Common Mistakes and How to Spot Them
-
-**Epoch Conversion Mistakes:**
-
-1. **Forgot to convert epochs**
-   - Symptom: Times show up as 1900 or way in the future
-   - Fix: Always add/subtract NTP_EPOCH_OFFSET
-
-2. **Converting in wrong direction**  
-   - Symptom: Times are 70 years off
-   - Fix: NTP times are BIGGER, Unix times are SMALLER
-
-3. **Converting twice**
-   - Symptom: Times are 140 years off
-   - Fix: Convert only once at the boundary between systems
-
-**Quick Sanity Check:**
-- Valid NTP time for 2025: ~3.9 billion seconds
-- Valid Unix time for 2025: ~1.7 billion seconds
-- If your numbers don't match these ranges, check your conversion!
-
-## Assignment Objectives
-
-In this assignment, you will implement the core NTP protocol functionality while we handle all the networking complexity for you. Your job is to:
-
-1. **Build proper NTP request packets** by filling in the correct header fields and timestamps
-2. **Parse NTP response packets** by extracting and converting timestamp data
-3. **Implement the NTP algorithm** to calculate time offset and network delay
-4. **Handle time format conversions** between NTP time (since 1900) and Unix time (since 1970)
-
-### What's Provided
-
-- Complete command-line argument processing
-- Socket creation and network communication
-- DNS hostname resolution
-- Error handling and program structure
-- Comprehensive header file with all protocol definitions
-- Debugging helper functions
-
-### What You Must Implement
-
-- `build_ntp_request()`: Create a properly formatted NTP request packet
-- `ntp_timestamp_to_double()`: Convert NTP timestamps to Unix time
-- `double_to_ntp_timestamp()`: Convert Unix time to NTP format
-- `calculate_ntp_offset()`: Implement the core NTP synchronization algorithm
-- `print_ntp_packet_info()`: Display packet contents for debugging
-- `print_ntp_results()`: Show final results with quality assessment
-
-## Learning Objectives
-
-By completing this assignment, you will:
+## What You'll Learn
 
 ### Technical Skills
 - **Protocol Implementation**: Understand how binary network protocols work in practice
@@ -240,6 +185,7 @@ By completing this assignment, you will:
 - **Reading Specifications**: Interpret formal protocol documentation
 - **Debugging Network Code**: Use packet analysis and structured debugging
 - **Code Organization**: Structure complex programs with clear separation of concerns
+- **Learning with AI**: Use modern tools to investigate protocol design decisions
 
 ## Getting Started
 
@@ -285,66 +231,390 @@ Your implementation includes several debugging helpers:
 - **`debug_print_bit_fields()`**: Shows bit field breakdown with binary representation
 - **Sanity Check Ranges**: Verify your timestamps fall within expected ranges
 
-## Analysis Questions
+---
 
-In addition to your code implementation, answer the following questions to demonstrate your understanding of key NTP concepts. Your answers should be clear and demonstrate understanding (1-2 paragraphs each). Include sample outputs from testing different servers.
+## Protocol Design Investigation (Required)
 
-### Question 1: Time Travel Debugging
-Your NTP client reports your clock is 30 seconds ahead, but you just synchronized yesterday. List three possible causes and how you'd investigate each one. Consider both technical issues (hardware, software, network) and real-world scenarios that could affect time synchronization.
+**Complete this AFTER you have a working implementation.**
 
-### Question 2: Network Distance Detective Work
-Test your NTP client with two different servers - one geographically close to you (like a national time service) and one farther away. Compare the round-trip delays you observe.
+### The Goal
 
-Based on your results, explain why the physical distance to an NTP server affects time synchronization quality. Why might you get a more accurate time sync from a "worse" time source that's closer to you rather than a "better" time source that's farther away? What does this tell us about distributed systems in general?
+You've just implemented a 50-year-old protocol that still powers the internet. But WHY does it work the way it does? This component teaches you to use AI as a learning tool to deeply understand protocol design decisions you encountered in your implementation.
 
-Include your actual test results and delay measurements in your answer.
+**This is NOT about getting AI to write code or answer homework questions. This is about using AI to investigate the "why" behind what you coded, using your actual implementation as the starting point.**
 
-### Question 3: Protocol Design Challenge
-Imagine a simpler time protocol where a client just sends "What time is it?" to a server, and the server responds with "It's 2:30:15 PM".
+### Assignment Structure
 
-Explain why this simple approach wouldn't work well for accurate time synchronization over a network. In your answer, discuss what problems network delay creates for time synchronization and why NTP needs to exchange multiple timestamps instead of just sending the current time. What additional information does having all four timestamps (T1, T2, T3, T4) provide that a simple request-response couldn't?
+Pick **TWO** investigation topics from the options below. For each topic:
+
+1. Reference specific code you wrote
+2. Use AI to investigate the design rationale through iterative questioning
+3. Connect your findings back to your implementation
+4. Demonstrate changed understanding
+
+### Investigation Topics (Choose 2)
+
+#### **Topic 1: The Four-Timestamp Algorithm**
+
+**Your Implementation:**
+You coded something like:
+```c
+delay = (T4 - T1) - (T3 - T2);
+offset = ((T2 - T1) + (T3 - T4)) / 2;
+```
+
+**Investigate:**
+- Why can't we just send "what time is it?" and calculate offset from the response?
+- What would break with a 2-timestamp approach?
+- How do the four timestamps separate network delay from clock offset?
+- When you tested your client, what would your results have looked like with a simpler approach?
+
+**Key Questions to Explore:**
+- Start: "I implemented NTP with 4 timestamps. Why not just [simpler approach]?"
+- Follow up: "When I tested against [server], I got [X]ms delay. What would happen with..."
+- Challenge: "The math seems like we're over-complicating it. What edge case am I missing?"
+
+#### **Topic 2: Bit Packing (li_vn_mode byte)**
+
+**Your Implementation:**
+You used:
+```c
+SET_NTP_LI_VN_MODE(packet, NTP_LI_UNSYNC, NTP_VERSION, NTP_MODE_CLIENT);
+```
+
+**Investigate:**
+- Why pack 3 fields into 1 byte when modern systems have gigabytes of memory?
+- What's the actual savings? Is it worth the complexity?
+- Are there situations where this still matters today?
+- How does this relate to other protocol design you've seen?
+
+**Key Questions to Explore:**
+- Start: "My NTP code packs 3 fields into 1 byte. Why this complexity in 2025?"
+- Follow up: "Saving 2 bytes per packet seems trivial. When does this actually matter?"
+- Challenge: "What would actually break if NTP used 3 separate bytes?"
+
+#### **Topic 3: Network Byte Order**
+
+**Your Implementation:**
+You converted between host and network order:
+```c
+packet->transmit_ts.seconds = htonl(seconds);
+// Later: seconds = ntohl(response.transmit_ts.seconds);
+```
+
+**Investigate:**
+- Why do we need this conversion? What breaks without it?
+- Why is big-endian the "network standard" when x86 is little-endian?
+- In your testing, did you connect to servers on different architectures? How did byte order affect that?
+- Could we eliminate this in modern protocols?
+
+**Key Questions to Explore:**
+- Start: "I convert to network byte order in my NTP code. What breaks if I skip this?"
+- Follow up: "My development machine is [architecture]. If I removed htonl/ntohl..."
+- Challenge: "Why not just standardize on little-endian since x86 dominates?"
+
+#### **Topic 4: NTP Epoch (1900 vs 1970)**
+
+**Your Implementation:**
+You converted between epochs:
+```c
+unix_seconds = ntp_seconds - NTP_EPOCH_OFFSET;
+// Where NTP_EPOCH_OFFSET = 2208988800
+```
+
+**Investigate:**
+- Why did NTP choose 1900 instead of matching Unix's 1970?
+- What's the Year 2036 problem and when does it happen?
+- Your code converts every timestamp - couldn't we have avoided this?
+- Why not update NTP to use Unix epoch?
+
+**Key Questions to Explore:**
+- Start: "My code converts between 1900 and 1970 epochs. Why two standards?"
+- Follow up: "I saw Year 2036 mentioned in the RFC. What happens then to my code?"
+- Challenge: "Wouldn't it be simpler if everyone just used Unix time?"
+
+#### **Topic 5: UDP Instead of TCP**
+
+**Your Implementation:**
+Your code uses UDP sockets:
+```c
+sockfd = socket(AF_INET, SOCK_DGRAM, 0);  // DGRAM = UDP
+```
+
+**Investigate:**
+- Why UDP when TCP is more reliable?
+- What happens if your NTP request packet gets lost?
+- When you tested, did you ever see timeouts? What does that tell you?
+- Are there other time protocols that use TCP? Why or why not?
+
+**Key Questions to Explore:**
+- Start: "My NTP client uses UDP. Why not TCP for guaranteed delivery?"
+- Follow up: "When I tested, [did/didn't] see packet loss. If I'd used TCP..."
+- Challenge: "Wouldn't TCP's reliability be better for accurate time sync?"
+
+#### **Topic 6: Stratum Hierarchy**
+
+**Your Implementation:**
+You set stratum to 0 in requests and received stratum values in responses:
+```c
+packet->stratum = 0;  // Client doesn't know its stratum
+// Server responds with its stratum (1-4 typically)
+```
+
+**Investigate:**
+- Why a hierarchy instead of all servers syncing directly with atomic clocks?
+- When you tested different servers, did you see different stratum values? What does that tell you?
+- How does this prevent timing loops?
+- Could we design a better system today?
+
+**Key Questions to Explore:**
+- Start: "My NTP code uses a stratum hierarchy. Why not connect everyone to stratum 1?"
+- Follow up: "I tested [server A] (stratum X) vs [server B] (stratum Y). How does..."
+- Challenge: "With modern infrastructure, couldn't we flatten this hierarchy?"
+
+#### **Topic 7: Fractional Seconds Representation**
+
+**Your Implementation:**
+You converted fractional seconds:
+```c
+fraction = (usec * NTP_FRACTION_SCALE) / USEC_INCREMENTS;
+// Where NTP_FRACTION_SCALE = 2^32
+```
+
+**Investigate:**
+- Why use 2^32 for fractional seconds instead of milliseconds or microseconds?
+- What precision does this actually give? Does it matter for internet time sync?
+- When you tested, how much did fractional seconds vary between packets?
+- Are there simpler representations we could use?
+
+**Key Questions to Explore:**
+- Start: "My code converts microseconds to 1/2^32 increments. Why this format?"
+- Follow up: "In my tests, offsets were ~[X]ms. Do we actually need picosecond precision?"
+- Challenge: "Why not just use milliseconds like most programming languages?"
+
+### Investigation Requirements (For Each Topic)
+
+#### **1. Implementation Context (3-4 sentences)**
+- What specific code did you write for this feature?
+- What initially seemed odd, complex, or unnecessary?
+- Reference actual lines from your implementation
+
+**Example:**
+```
+In my build_ntp_request() function, I set packet->stratum = 0 for client requests, 
+even though the comment said this means "unspecified." This seemed wrong - shouldn't 
+I tell the server what level I'm at? When I tested against time.nist.gov, I received 
+stratum=1 back, and against pool.ntp.org I got stratum=2. I started wondering why 
+this hierarchy exists at all.
+```
+
+#### **2. AI Investigation Documentation**
+
+Conduct a conversation with an AI assistant that shows:
+- **Your initial question** - must reference your actual implementation
+- **At least 5-6 follow-up questions** showing how your understanding evolved
+- **Questions that explore alternatives** - "Why not just..." / "What if instead..."
+- **Questions connecting to your test results** - "When I ran this, I saw X..."
+- **Questions challenging the design** - "Couldn't we do this simpler way?"
+
+**Required format:**
+```
+ME: [your question]
+AI: [key parts of response - can be condensed]
+ME: [follow-up based on that answer]
+AI: [key parts of response]
+[continue for 5-6+ exchanges]
+```
+
+**Quality indicators:**
+- ✅ Each question builds on the previous answer
+- ✅ You reference your specific implementation
+- ✅ You use your test results as examples
+- ✅ You challenge assumptions
+- ✅ You explore "what if" alternatives
+
+**Warning signs:**
+- ❌ Single question with long AI response
+- ❌ Generic questions not tied to your code
+- ❌ No reference to your testing experience
+- ❌ Just accepting the first explanation
+
+#### **3. Design Rationale (2-3 paragraphs)**
+
+Synthesize what you learned. Cover:
+- **The core design decision** - what problem does this solve?
+- **The tradeoffs** - what's gained and what's sacrificed?
+- **Why alternatives don't work** - what would break with simpler approaches?
+- **Connection to your code** - reference specific functions/lines
+
+**This must be YOUR synthesis, not AI's explanation. Show you understand by:**
+- Using your own examples
+- Referencing your actual test results
+- Explaining in your own words why the design makes sense
+- Identifying what surprised you most
+
+#### **4. Implementation Insight (1 paragraph)**
+
+Answer: **How does understanding the "why" change how you view your code?**
+
+Consider:
+- Would you implement it differently now?
+- Does the complexity now seem justified?
+- What would you explain to another programmer?
+- What's one "aha moment" from your investigation?
+
+**Example:**
+```
+Before this investigation, the four-timestamp algorithm seemed overly complex - why 
+not just get the server's time and be done? Now I understand that my 47ms round-trip 
+delay to time.nist.gov would have caused a 23ms systematic error with a naive 
+approach. The algorithm doesn't just get the time; it SEPARATES network delay from 
+clock offset. When I look back at my calculate_offset() function, the seemingly odd 
+formula ((T2-T1) + (T3-T4))/2 now makes perfect sense - it's averaging out the 
+one-way delays. This isn't over-engineering; it's the minimum complexity needed for 
+accuracy over a variable-delay network.
+```
+
+### Submission Format
+
+Create a document: `protocol-investigation.md`
+
+Structure it as:
+```markdown
+# NTP Protocol Design Investigation
+
+## Investigation 1: [Topic Name]
+
+### Implementation Context
+[Your code and what puzzled you]
+
+### AI Investigation
+[Your conversation transcript]
+
+### Design Rationale
+[Your synthesis of what you learned]
+
+### Implementation Insight
+[How this changed your understanding]
+
+---
+
+## Investigation 2: [Topic Name]
+
+### Implementation Context
+[Your code and what puzzled you]
+
+### AI Investigation
+[Your conversation transcript]
+
+### Design Rationale
+[Your synthesis of what you learned]
+
+### Implementation Insight
+[How this changed your understanding]
+```
+
+### Complete Investigation Examples
+
+**📘 IMPORTANT: See example_investigation.md for two complete, high-quality investigations.**
+
+That file shows:
+- **Investigation 1**: Four-Timestamp Algorithm (full example)
+- **Investigation 2**: UDP Instead of TCP (full example)
+
+Each demonstrates:
+- Proper questioning technique (6+ iterative questions)
+- Strong code connections with specific references
+- Use of actual test results as examples
+- Synthesis in student's own voice
+- Clear "aha moments" and insights
+
+**Use these as your quality standard.** If your investigation doesn't have similar depth, specificity, and progression, keep working on it.
+
+---
 
 ## Deliverables
 
 Submit the following files:
-- `ntp-client.c` - Your completed implementation
-- `answers.md` - Your responses to the three analysis questions (include sample outputs from different servers)
-- `README.md` - Brief description of your approach and any challenges faced
+1. **`ntp-client.c`** - Your completed implementation
+2. **`protocol-investigation.md`** - Your TWO protocol investigations (follow format above)
+3. **`README.md`** - Brief description of your implementation approach and any challenges
 
 ## Grading Rubric
 
-| Component | Excellent (90-100%) | Good (80-89%) | Satisfactory (70-79%) | Needs Work (60-69%) | Unsatisfactory (0-59%) |
-|-----------|-------------------|---------------|---------------------|-------------------|----------------------|
-| **NTP Request Construction (20%)** | Request packet perfectly formatted with all fields correctly set, proper bit manipulation, network byte order handled correctly | Request packet mostly correct, minor issues with some fields or byte order | Request packet functional but has some incorrect fields or formatting issues | Request packet created but with several errors affecting functionality | Request packet malformed or not implemented |
-| **Time Conversion Functions (15%)** | Timestamp conversions flawless, handles NTP epoch correctly, proper precision maintained | Timestamp conversions work correctly with minor precision issues | Conversions functional but may lose some precision or have edge case issues | Conversions work for basic cases but have notable errors | Conversions incorrect or not implemented |
-| **NTP Algorithm Implementation (20%)** | Perfect implementation of NTP algorithm, correct offset and delay calculations, handles all edge cases | Algorithm implemented correctly with minor calculation errors | Algorithm works for most cases but has some calculation issues | Basic algorithm implemented but with several computational errors | Algorithm incorrect or not implemented |
-| **Output and Debugging (10%)** | Excellent output formatting, comprehensive packet information display, clear results presentation | Good output with minor formatting issues, most information displayed correctly | Basic output that shows essential information but lacks polish | Output present but difficult to read or missing important information | Poor or missing output functions |
-| **Code Quality and Documentation (10%)** | Clean, well-commented code that follows best practices, excellent variable naming and structure | Good code organization with adequate comments and clear structure | Code is functional and reasonably organized with some comments | Code works but is poorly organized or documented | Code is difficult to understand or follow |
-| **Analysis Questions (20%)** | Demonstrates deep understanding of NTP concepts, provides insightful analysis with clear explanations and supporting evidence from actual test results | Shows solid understanding with mostly correct analysis and good explanations, includes some test data | Basic understanding evident, answers are generally correct but may lack depth or supporting data | Shows some understanding but answers have gaps or minor errors, limited test evidence | Poor understanding, answers are incomplete or incorrect |
-| **Testing and Validation (5%)** | Comprehensive testing with multiple servers, demonstrates understanding of results, includes edge case handling, uses debug features effectively | Good testing with multiple servers, shows reasonable results interpretation | Basic testing with successful synchronization shown | Limited testing, may not work with all servers | Insufficient testing or non-functional implementation |
+### NTP Client Implementation (60 points)
+
+| Component | Excellent (54-60) | Good (48-53) | Satisfactory (42-47) | Needs Work (36-41) | Unsatisfactory (0-35) |
+|-----------|-------------------|--------------|----------------------|--------------------|-----------------------|
+| **Request Construction (15%)** | Request packet perfectly formatted, all fields correct, proper bit manipulation, network byte order handled | Request mostly correct, minor field or byte order issues | Request functional but some formatting issues | Request created but several errors affecting functionality | Request malformed or not implemented |
+| **Time Conversion (15%)** | Timestamp conversions flawless, handles epochs correctly, proper precision | Conversions work with minor precision issues | Conversions functional but may lose precision | Conversions work for basic cases but have notable errors | Conversions incorrect or missing |
+| **NTP Algorithm (15%)** | Perfect offset/delay calculations, handles edge cases | Algorithm correct with minor errors | Algorithm works for most cases, some calculation issues | Basic algorithm with several errors | Algorithm incorrect or missing |
+| **Output & Debugging (5%)** | Excellent formatting, comprehensive packet display, clear results | Good output, minor formatting issues | Basic output showing essential information | Output present but hard to read or incomplete | Poor or missing output |
+| **Code Quality (10%)** | Clean, well-commented code, excellent structure | Good organization, adequate comments | Functional, reasonably organized | Works but poorly organized/documented | Difficult to understand |
+
+### Protocol Design Investigation (40 points total - 20 points per investigation)
+
+| Criteria | Excellent (18-20) | Good (15-17) | Satisfactory (12-14) | Needs Work (0-11) |
+|----------|-------------------|--------------|----------------------|-------------------|
+| **Implementation Context** | Clearly describes specific code written, identifies genuine puzzlement with concrete examples from testing | Describes implementation with some specifics, identifies area of confusion | Basic description of code, vague sense of what was unclear | Generic or missing context, no code references |
+| **Investigation Quality** | 6+ substantive questions showing clear progression, explores alternatives, challenges assumptions, uses test results | 5 questions with reasonable progression, some exploration of alternatives | 3-4 questions with limited progression, surface-level exploration | 1-2 questions or just copying AI responses |
+| **Design Understanding** | Demonstrates deep grasp of design rationale and tradeoffs, explains why alternatives fail, uses concrete examples | Solid understanding with minor gaps, explains main concepts adequately | Basic understanding, covers key points without depth | Poor understanding, significant misconceptions |
+| **Code Connection** | Strong synthesis connecting investigation to specific implementation details, references actual code and test results | Good connection to implementation with some specific references | Weak connection, general statements about code | Little or no connection to actual implementation |
+| **Personal Insight** | Clear "aha moment," shows changed understanding, articulates what surprised them and why | Shows learning occurred, reasonable insights | Surface-level insights, limited evidence of changed understanding | Generic statements, no evidence of learning |
+
+### Point Distribution Summary
+- **NTP Client Implementation**: 60 points
+  - Request Construction: 15 points
+  - Time Conversion: 15 points  
+  - NTP Algorithm: 15 points
+  - Output & Debugging: 5 points
+  - Code Quality: 10 points
+
+- **Protocol Investigation**: 40 points
+  - Investigation 1: 20 points
+  - Investigation 2: 20 points
+
+**Total: 100 points**
 
 ### Grade Scale
-- **A (90-100%)**: Implementation demonstrates mastery of network protocols and time synchronization concepts
-- **B (80-89%)**: Solid understanding with minor technical issues
-- **C (70-79%)**: Basic functionality achieved with some gaps in implementation
-- **D (60-69%)**: Minimal functionality, significant issues remain
-- **F (0-59%)**: Implementation does not meet basic requirements
+- **A (90-100%)**: Demonstrates mastery of both implementation and protocol understanding
+- **B (80-89%)**: Solid implementation with good protocol analysis
+- **C (70-79%)**: Working implementation with basic protocol understanding
+- **D (60-69%)**: Minimal functionality and limited understanding
+- **F (0-59%)**: Does not meet requirements
 
 ### Bonus Opportunities (+5% each, max +15%)
-- **Multi-server averaging**: Query multiple servers and average the results
+- **Multi-server averaging**: Query multiple servers and average results
 - **Outlier detection**: Identify and handle servers with suspicious responses
-- **IPv6 support**: Extend the client to work with IPv6 NTP servers
-- **Comprehensive error handling**: Add robust validation and error recovery
+- **IPv6 support**: Extend client to work with IPv6
+- **Additional investigation**: Third protocol investigation of same quality
 
 ## Tips for Success
 
+### Implementation Phase
 1. **Start early**: Network programming can have unexpected challenges
 2. **Use the debugging tools**: Try the `-d` flag and `debug_print_bit_fields()` function
 3. **Read the header file carefully**: All the constants and macros you need are provided
 4. **Test with multiple servers**: Different servers may expose different bugs
 5. **Pay attention to byte order**: Network protocols are strict about endianness
 6. **Understand the math**: The NTP algorithm is simple but precise implementation matters
-7. **Use the visual guides**: Reference the bit packing and epoch conversion examples
+
+### Investigation Phase
+1. **Get your code working first**: You can't investigate what you haven't implemented
+2. **Reference your actual code**: Generic questions get generic answers
+3. **Use your test results**: "When I tested against X, I saw Y" makes better questions
+4. **Challenge the design**: Ask "why not..." and "what if..." questions
+5. **Let curiosity guide you**: Pick topics that genuinely puzzled you
+6. **Iterate your questions**: Your first question won't give you everything
+7. **Synthesize, don't copy**: We want YOUR understanding, not AI's explanation
+
+### What Makes a Great Investigation
+- You explore alternatives that seem simpler
+- You use your actual test results as examples
+- You can explain why the "obvious" approach doesn't work
+- You understand the tradeoffs, not just the solution
+- You connect findings back to specific code you wrote
+- Someone reading your investigation learns something new
 
 ## Resources
 
@@ -352,4 +622,25 @@ Submit the following files:
 - [NTP Pool Project](https://www.pool.ntp.org/) - Public NTP servers
 - [NIST Time Services](https://www.nist.gov/pml/time-and-frequency-division/services/internet-time-service-its)
 
-Remember: The goal isn't just to make it work, but to understand how network time synchronization enables the modern internet!
+## Academic Integrity
+
+This assignment explicitly requires you to use AI for the protocol investigation component. However:
+
+**For the Implementation (ntp-client.c):**
+- You may use AI to help understand concepts, debug errors, or clarify documentation
+- You must write and understand all code yourself
+- Simply asking AI to "complete the TODO functions" violates academic integrity
+
+**For the Investigation (protocol-investigation.md):**
+- You MUST use AI to explore protocol design
+- Your investigation documents YOUR learning process
+- The quality of your questions and synthesis is what we grade
+- Just copying AI responses without investigation gets minimal credit
+
+**The Goal:** Learn to use AI as a tool for understanding, not as a tool for completion.
+
+If you're unsure whether something is appropriate, ask before submitting.
+
+---
+
+Remember: The goal isn't just to make it work, but to understand WHY it works the way it does. Network protocols are designed by engineers solving real problems - your job is to understand those problems and appreciate the elegance of the solutions!
