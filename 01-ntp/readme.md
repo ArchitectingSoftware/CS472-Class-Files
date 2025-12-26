@@ -427,17 +427,17 @@ AI: [key parts of response]
 ```
 
 **Quality indicators:**
-- ✅ Each question builds on the previous answer
-- ✅ You reference your specific implementation
-- ✅ You use your test results as examples
-- ✅ You challenge assumptions
-- ✅ You explore "what if" alternatives
+- Each question builds on the previous answer
+- You reference your specific implementation
+- You use your test results as examples
+- You challenge assumptions
+- You explore "what if" alternatives
 
 **Warning signs:**
-- ❌ Single question with long AI response
-- ❌ Generic questions not tied to your code
-- ❌ No reference to your testing experience
-- ❌ Just accepting the first explanation
+- Single question with long AI response
+- Generic questions not tied to your code
+- No reference to your testing experience
+- Just accepting the first explanation
 
 #### **3. Design Rationale (2-3 paragraphs)**
 
