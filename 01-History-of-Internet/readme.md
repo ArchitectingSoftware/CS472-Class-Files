@@ -143,7 +143,7 @@ After your investigation, write up what you learned. This isn't just summarizing
 
 ### Submission Format for Part 2
 
-Submit a document containing:
+Submit a document in your course GitHub repository **(detailed information on filenames and format follows)** directory containing:
 
 #### A. Investigation Overview
 
