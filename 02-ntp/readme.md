@@ -233,7 +233,7 @@ Your implementation includes several debugging helpers:
 
 ---
 
-## Protocol Design Investigation: Learning Through Implementation (40 points)
+## Protocol Design Investigation: Learning Through Implementation (30 points)
 
 **Complete this AFTER you have a working implementation.**
 
@@ -247,7 +247,7 @@ The best way to understand protocol design is to implement it. You've just built
 - Synthesize your understanding in your own words
 - Explain your "aha moment", or articulate things that still confuse you
 
-**Points:** 20 points per investigation (40 total)
+**Points:** 15 points per investigation (30 total)
 
 ---
 
