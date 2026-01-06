@@ -233,303 +233,220 @@ Your implementation includes several debugging helpers:
 
 ---
 
-## Protocol Design Investigation (Required)
+## Protocol Design Investigation: Learning Through Implementation (40 points)
 
 **Complete this AFTER you have a working implementation.**
 
-### The Goal
+The best way to understand protocol design is to implement it. You've just built an NTP client - now reflect on what you learned through that process and dig deeper into design decisions or concepts that puzzled you while coding.
 
-You've just implemented a 50-year-old protocol that still powers the internet. But WHY does it work the way it does? This component teaches you to use AI as a learning tool to deeply understand protocol design decisions you encountered in your implementation.
+### Requirements
 
-**This is NOT about getting AI to write code or answer homework questions. This is about using AI to investigate the "why" behind what you coded, using your actual implementation as the starting point.**
+**Pick 2 topics from the list below** that genuinely puzzled you during implementation. For each:
+- Document what confused you in YOUR code
+- Show how you explored the design through research and testing
+- Synthesize your understanding in your own words
+- Explain your "aha moment", or articulate things that still confuse you
 
-### Assignment Structure
+**Points:** 20 points per investigation (40 total)
 
-Pick **TWO** investigation topics from the options below. For each topic:
+---
 
-1. Reference specific code you wrote
-2. Use AI to investigate the design rationale through iterative questioning
-3. Connect your findings back to your implementation
-4. Demonstrate changed understanding
+### Suggested Topics (Pick 2)
 
-### Investigation Topics (Choose 2)
+Choose topics that:
+- Actually puzzled you while coding
+- You tested and observed in practice
+- You can reference with specific code you wrote
 
-#### **Topic 1: The Four-Timestamp Algorithm**
+#### **Topic 1: Four-Timestamp Algorithm**
 
-**Your Implementation:**
-You coded something like:
+**What you implemented:**
+You calculated offset and delay using T1, T2, T3, T4:
 ```c
 delay = (T4 - T1) - (T3 - T2);
 offset = ((T2 - T1) + (T3 - T4)) / 2;
 ```
 
-**Investigate:**
-- Why can't we just send "what time is it?" and calculate offset from the response?
-- What would break with a 2-timestamp approach?
-- How do the four timestamps separate network delay from clock offset?
-- When you tested your client, what would your results have looked like with a simpler approach?
+**Why investigate this:**
+- This formula seems overly complex - why not just use T3 (server time)?
+- What problem does this actually solve?
+- When you tested, what delays did you see? How did the algorithm handle them?
+- Could we simplify this?
 
-**Key Questions to Explore:**
-- Start: "I implemented NTP with 4 timestamps. Why not just [simpler approach]?"
-- Follow up: "When I tested against [server], I got [X]ms delay. What would happen with..."
-- Challenge: "The math seems like we're over-complicating it. What edge case am I missing?"
+#### **Topic 2: Packed Bit Fields (li_vn_mode)**
 
-#### **Topic 2: Bit Packing (li_vn_mode byte)**
-
-**Your Implementation:**
-You used:
+**What you implemented:**
+You packed 3 fields into one byte using bit manipulation:
 ```c
 SET_NTP_LI_VN_MODE(packet, NTP_LI_UNSYNC, NTP_VERSION, NTP_MODE_CLIENT);
+// Results in: li_vn_mode = 0xE3
 ```
 
-**Investigate:**
-- Why pack 3 fields into 1 byte when modern systems have gigabytes of memory?
-- What's the actual savings? Is it worth the complexity?
-- Are there situations where this still matters today?
-- How does this relate to other protocol design you've seen?
+**Why investigate this:**
+- Why pack fields when we have plenty of bandwidth?
+- How does this relate to network protocol design principles?
+- When you debugged, did this packing ever cause issues?
+- Why not just use 3 separate bytes?
 
-**Key Questions to Explore:**
-- Start: "My NTP code packs 3 fields into 1 byte. Why this complexity in 2025?"
-- Follow up: "Saving 2 bytes per packet seems trivial. When does this actually matter?"
-- Challenge: "What would actually break if NTP used 3 separate bytes?"
+#### **Topic 3: Network Byte Order (Endianness)**
 
-#### **Topic 3: Network Byte Order**
-
-**Your Implementation:**
-You converted between host and network order:
+**What you implemented:**
+You converted all multi-byte fields:
 ```c
 packet->transmit_ts.seconds = htonl(seconds);
 // Later: seconds = ntohl(response.transmit_ts.seconds);
 ```
 
-**Investigate:**
-- Why do we need this conversion? What breaks without it?
-- Why is big-endian the "network standard" when x86 is little-endian?
-- In your testing, did you connect to servers on different architectures? How did byte order affect that?
-- Could we eliminate this in modern protocols?
-
-**Key Questions to Explore:**
-- Start: "I convert to network byte order in my NTP code. What breaks if I skip this?"
-- Follow up: "My development machine is [architecture]. If I removed htonl/ntohl..."
-- Challenge: "Why not just standardize on little-endian since x86 dominates?"
+**Why investigate this:**
+- Why is this necessary? What breaks without it?
+- When you tested against different servers, how did this matter?
+- Why standardize on big-endian when most processors are little-endian?
+- Could modern protocols skip this?
 
 #### **Topic 4: NTP Epoch (1900 vs 1970)**
 
-**Your Implementation:**
-You converted between epochs:
+**What you implemented:**
+You converted between two time standards:
 ```c
 unix_seconds = ntp_seconds - NTP_EPOCH_OFFSET;
-// Where NTP_EPOCH_OFFSET = 2208988800
+// Where NTP_EPOCH_OFFSET = 2208988800 (70 years in seconds)
 ```
 
-**Investigate:**
-- Why did NTP choose 1900 instead of matching Unix's 1970?
-- What's the Year 2036 problem and when does it happen?
-- Your code converts every timestamp - couldn't we have avoided this?
+**Why investigate this:**
+- Why two different epoch standards?
+- What's the Year 2036 problem?
+- When you tested, did you notice the huge numbers in NTP timestamps?
 - Why not update NTP to use Unix epoch?
-
-**Key Questions to Explore:**
-- Start: "My code converts between 1900 and 1970 epochs. Why two standards?"
-- Follow up: "I saw Year 2036 mentioned in the RFC. What happens then to my code?"
-- Challenge: "Wouldn't it be simpler if everyone just used Unix time?"
 
 #### **Topic 5: UDP Instead of TCP**
 
-**Your Implementation:**
+**What you implemented:**
 Your code uses UDP sockets:
 ```c
 sockfd = socket(AF_INET, SOCK_DGRAM, 0);  // DGRAM = UDP
 ```
 
-**Investigate:**
-- Why UDP when TCP is more reliable?
-- What happens if your NTP request packet gets lost?
+**Why investigate this:**
+- Why UDP when TCP guarantees delivery?
 - When you tested, did you ever see timeouts? What does that tell you?
-- Are there other time protocols that use TCP? Why or why not?
-
-**Key Questions to Explore:**
-- Start: "My NTP client uses UDP. Why not TCP for guaranteed delivery?"
-- Follow up: "When I tested, [did/didn't] see packet loss. If I'd used TCP..."
-- Challenge: "Wouldn't TCP's reliability be better for accurate time sync?"
+- What happens if packets get lost?
+- Couldn't TCP's reliability be better for time synchronization?
 
 #### **Topic 6: Stratum Hierarchy**
 
-**Your Implementation:**
-You set stratum to 0 in requests and received stratum values in responses:
+**What you implemented:**
+You set stratum to 0 in requests and observed different values in responses:
 ```c
 packet->stratum = 0;  // Client doesn't know its stratum
 // Server responds with its stratum (1-4 typically)
 ```
 
-**Investigate:**
-- Why a hierarchy instead of all servers syncing directly with atomic clocks?
-- When you tested different servers, did you see different stratum values? What does that tell you?
+**Why investigate this:**
+- Why a hierarchy instead of everyone syncing with atomic clocks?
+- When you tested different servers, what stratum values did you see?
 - How does this prevent timing loops?
-- Could we design a better system today?
-
-**Key Questions to Explore:**
-- Start: "My NTP code uses a stratum hierarchy. Why not connect everyone to stratum 1?"
-- Follow up: "I tested [server A] (stratum X) vs [server B] (stratum Y). How does..."
-- Challenge: "With modern infrastructure, couldn't we flatten this hierarchy?"
+- Is this hierarchy still necessary with modern infrastructure?
 
 #### **Topic 7: Fractional Seconds Representation**
 
-**Your Implementation:**
-You converted fractional seconds:
+**What you implemented:**
+You converted fractional seconds to NTP format:
 ```c
 fraction = (usec * NTP_FRACTION_SCALE) / USEC_INCREMENTS;
 // Where NTP_FRACTION_SCALE = 2^32
 ```
 
-**Investigate:**
-- Why use 2^32 for fractional seconds instead of milliseconds or microseconds?
-- What precision does this actually give? Does it matter for internet time sync?
-- When you tested, how much did fractional seconds vary between packets?
-- Are there simpler representations we could use?
-
-**Key Questions to Explore:**
-- Start: "My code converts microseconds to 1/2^32 increments. Why this format?"
-- Follow up: "In my tests, offsets were ~[X]ms. Do we actually need picosecond precision?"
-- Challenge: "Why not just use milliseconds like most programming languages?"
-
-### Investigation Requirements (For Each Topic)
-
-#### **1. Implementation Context (3-4 sentences)**
-- What specific code did you write for this feature?
-- What initially seemed odd, complex, or unnecessary?
-- Reference actual lines from your implementation
-
-**Example:**
-```
-In my build_ntp_request() function, I set packet->stratum = 0 for client requests, 
-even though the comment said this means "unspecified." This seemed wrong - shouldn't 
-I tell the server what level I'm at? When I tested against time.nist.gov, I received 
-stratum=1 back, and against pool.ntp.org I got stratum=2. I started wondering why 
-this hierarchy exists at all.
-```
-
-#### **2. AI Investigation Documentation**
-
-Conduct a conversation with an AI assistant that shows:
-- **Your initial question** - must reference your actual implementation
-- **At least 5-6 follow-up questions** showing how your understanding evolved
-- **Questions that explore alternatives** - "Why not just..." / "What if instead..."
-- **Questions connecting to your test results** - "When I ran this, I saw X..."
-- **Questions challenging the design** - "Couldn't we do this simpler way?"
-
-**Required format:**
-```
-ME: [your question]
-AI: [key parts of response - can be condensed]
-ME: [follow-up based on that answer]
-AI: [key parts of response]
-[continue for 5-6+ exchanges]
-```
-
-**Quality indicators:**
-- Each question builds on the previous answer
-- You reference your specific implementation
-- You use your test results as examples
-- You challenge assumptions
-- You explore "what if" alternatives
-
-**Warning signs:**
-- Single question with long AI response
-- Generic questions not tied to your code
-- No reference to your testing experience
-- Just accepting the first explanation
-
-#### **3. Design Rationale (2-3 paragraphs)**
-
-Synthesize what you learned. Cover:
-- **The core design decision** - what problem does this solve?
-- **The tradeoffs** - what's gained and what's sacrificed?
-- **Why alternatives don't work** - what would break with simpler approaches?
-- **Connection to your code** - reference specific functions/lines
-
-**This must be YOUR synthesis, not AI's explanation. Show you understand by:**
-- Using your own examples
-- Referencing your actual test results
-- Explaining in your own words why the design makes sense
-- Identifying what surprised you most
-
-#### **4. Implementation Insight (1 paragraph)**
-
-Answer: **How does understanding the "why" change how you view your code?**
-
-Consider:
-- Would you implement it differently now?
-- Does the complexity now seem justified?
-- What would you explain to another programmer?
-- What's one "aha moment" from your investigation?
-
-**Example:**
-```
-Before this investigation, the four-timestamp algorithm seemed overly complex - why 
-not just get the server's time and be done? Now I understand that my 47ms round-trip 
-delay to time.nist.gov would have caused a 23ms systematic error with a naive 
-approach. The algorithm doesn't just get the time; it SEPARATES network delay from 
-clock offset. When I look back at my calculate_offset() function, the seemingly odd 
-formula ((T2-T1) + (T3-T4))/2 now makes perfect sense - it's averaging out the 
-one-way delays. This isn't over-engineering; it's the minimum complexity needed for 
-accuracy over a variable-delay network.
-```
-
-### Submission Format
-
-Create a document: `protocol-investigation.md`
-
-Structure it as:
-```markdown
-# NTP Protocol Design Investigation
-
-## Investigation 1: [Topic Name]
-
-### Implementation Context
-[Your code and what puzzled you]
-
-### AI Investigation
-[Your conversation transcript]
-
-### Design Rationale
-[Your synthesis of what you learned]
-
-### Implementation Insight
-[How this changed your understanding]
+**Why investigate this:**
+- Why use 2^32 scale instead of milliseconds or microseconds?
+- What precision does this actually provide?
+- When you tested, how much did timestamps vary?
+- Do we need picosecond precision for internet time sync?
 
 ---
 
-## Investigation 2: [Topic Name]
+
+### Submission Format
+
+**File:** place your solutions to the above in a file called `protocol-investigation.md` in your course repo.  It should have roughly the following structure:
+
+**Structure:**
+```markdown
+# NTP Protocol Design Investigation
+
+## Investigation 1: [Topic You Chose]
 
 ### Implementation Context
-[Your code and what puzzled you]
+[What you coded and what puzzled you - reference specific code]
 
-### AI Investigation
-[Your conversation transcript]
+### Investigation Journey  
+[Your research/exploration process - 5-6+ steps of discovery]
 
 ### Design Rationale
-[Your synthesis of what you learned]
+[Your synthesis - why this design, what tradeoffs, why alternatives fail]
 
 ### Implementation Insight
-[How this changed your understanding]
+[Your "aha moment" - how this changed your understanding]
+
+---
+
+## Investigation 2: [Your Second Topic]
+
+### Implementation Context
+[What you coded and what puzzled you]
+
+### Investigation Journey
+[Your research/exploration process]
+
+### Design Rationale
+[Your synthesis in your own words]
+
+### Implementation Insight
+[What you learned from implementing]
 ```
 
-### Complete Investigation Examples
+---
 
-**📘 IMPORTANT: See example_investigation.md for two complete, high-quality investigations.**
+### What Makes a Strong Investigation
 
-That file shows:
-- **Investigation 1**: Four-Timestamp Algorithm (full example)
-- **Investigation 2**: UDP Instead of TCP (full example)
+**Excellent investigations show:**
+- Genuine puzzlement from YOUR implementation experience
+- Specific code references from YOUR functions
+- Test results from YOUR runs
+- Progressive deepening of understanding (5-6+ steps)
+- Synthesis in your own words (not copy-paste)
+- Clear "aha moment" when it clicked
+- Connection back to specific code you wrote
 
-Each demonstrates:
-- Proper questioning technique (6+ iterative questions)
-- Strong code connections with specific references
-- Use of actual test results as examples
-- Synthesis in student's own voice
-- Clear "aha moments" and insights
+**Weak investigations show:**
+- Generic questions not tied to your code
+- No reference to your testing experience
+- Copy-pasted explanations without synthesis
+- Single question with long response (no progression)
+- No connection to what you actually implemented
 
-**Use these as your quality standard.** If your investigation doesn't have similar depth, specificity, and progression, keep working on it.
+---
+
+
+### Common Mistakes to Avoid
+
+**Don't:** Pick topics you didn't actually implement or test  
+**Do:** Pick topics that genuinely confused you while coding
+
+**Don't:** Ask one big question and paste a long AI response  
+**Do:** Show 5-6+ steps demonstrating growing understanding
+
+**Don't:** Copy explanations from AI/documentation without synthesis  
+**Do:** Explain in your own words using your test results as examples
+
+**Don't:** Say "the design is good" without explaining why  
+**Do:** Explain the tradeoffs and why alternatives fail
+
+**Don't:** Keep investigation separate from your code  
+**Do:** Reference specific functions, lines, test results from YOUR implementation
+
+---
+
+**Remember:** This is about what you LEARNED by IMPLEMENTING, not just what you can research. The best investigations show: "I coded this, it puzzled me, I explored it, and NOW I get why it's designed this way."
 
 ---
 
@@ -591,9 +508,9 @@ Submit the following files:
 | **Output & Debugging (5%)** | Excellent formatting, comprehensive packet display, clear results | Good output, minor formatting issues | Basic output showing essential information | Output present but hard to read or incomplete | Poor or missing output |
 | **Code Quality (10%)** | Clean, well-commented code, excellent structure | Good organization, adequate comments | Functional, reasonably organized | Works but poorly organized/documented | Difficult to understand |
 
-### Protocol Design Investigation (40 points total - 20 points per investigation)
+### Protocol Design Investigation (30 points total - 15 points per investigation)
 
-| Criteria | Excellent (18-20) | Good (15-17) | Satisfactory (12-14) | Needs Work (0-11) |
+| Criteria | Excellent (13-15) | Good (10-12) | Satisfactory (7-9) | Needs Work (0-6) |
 |----------|-------------------|--------------|----------------------|-------------------|
 | **Implementation Context** | Clearly describes specific code written, identifies genuine puzzlement with concrete examples from testing | Describes implementation with some specifics, identifies area of confusion | Basic description of code, vague sense of what was unclear | Generic or missing context, no code references |
 | **Investigation Quality** | 6+ substantive questions showing clear progression, explores alternatives, challenges assumptions, uses test results | 5 questions with reasonable progression, some exploration of alternatives | 3-4 questions with limited progression, surface-level exploration | 1-2 questions or just copying AI responses |
@@ -609,9 +526,9 @@ Submit the following files:
   - Output & Debugging: 5 points
   - Code Quality: 10 points
 
-- **Protocol Investigation**: 40 points
-  - Investigation 1: 20 points
-  - Investigation 2: 20 points
+- **Protocol Investigation**: 30 points
+  - Investigation 1: 15 points
+  - Investigation 2: 15 points
 
 - **Distributed Systems Investigation**: 10 points
   - Learning Process: 2 points
@@ -620,22 +537,14 @@ Submit the following files:
   - CAP & Eventual Consistency: 2 points
   - Your NTP Client in Context: 2 points
 
-**Total: 110 points**
+**Total: 100 points**
 
-### Grade Scale
-- **A (90-100%)**: Demonstrates mastery of implementation, protocol understanding, and distributed systems concepts (99-110 points)
-- **B (80-89%)**: Solid implementation with good protocol and systems analysis (88-98 points)
-- **C (70-79%)**: Working implementation with basic understanding (77-87 points)
-- **D (60-69%)**: Minimal functionality and limited understanding (66-76 points)
-- **F (0-59%)**: Does not meet requirements (0-65 points)
 
-### Bonus Opportunities (+5 points each, max +15 points)
+### Bonus Opportunities (+5 points each, max +10 points)
 - **Multi-server averaging**: Query multiple servers and average results
 - **Outlier detection**: Identify and handle servers with suspicious responses
-- **IPv6 support**: Extend client to work with IPv6
-- **Additional protocol investigation**: Third protocol investigation of same quality
 
-**Maximum possible points: 125 (110 base + 15 bonus)**
+**Maximum possible points: 110 (100 base + 10 bonus)**
 
 ## Tips for Success
 
