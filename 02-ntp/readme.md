@@ -475,7 +475,7 @@ Your NTP implementation is one piece of a larger puzzle. This investigation help
 
 **File to create:** `time-in-distributed-systems.md`
 
-**See the complete instructions in:** [`ai-distributed-investigation.md`](AI-Distributed-Investigation.md)
+**See the complete instructions in:** [`ai-distributed-investigation.md`](ai-distributed-investigation.md)
 
 The investigation has 5 sections:
 1. **Learning Process** (2 pts) - Document your AI-assisted research
