@@ -533,12 +533,51 @@ Each demonstrates:
 
 ---
 
+## Distributed Systems Investigation (10 points)
+
+**NEW COMPONENT:** In addition to the protocol investigations, you'll complete a separate investigation exploring how time synchronization fits into distributed systems.
+
+### What You'll Learn
+
+This investigation explores fundamental distributed systems concepts:
+- **Real-world failures** caused by time synchronization issues
+- **Physical vs logical time** and why timestamps aren't enough
+- **CAP theorem** and fundamental tradeoffs
+- **Eventual consistency** and when perfect sync isn't needed
+- **Your NTP client's role** in the distributed systems landscape
+
+### Why This Matters
+
+Your NTP implementation is one piece of a larger puzzle. This investigation helps you understand:
+- Why time synchronization is critical in distributed systems
+- Where NTP is sufficient and where it's not
+- How your implementation fits into production systems
+- Fundamental concepts every systems engineer should know
+
+### The Investigation
+
+**File to create:** `time-in-distributed-systems.md`
+
+**See the complete instructions in:** [`ai-distributed-investigation.md`](AI-Distributed-Investigation.md)
+
+The investigation has 5 sections:
+1. **Learning Process** (2 pts) - Document your AI-assisted research
+2. **Real-World Failure** (2 pts) - Analyze a major time-related incident
+3. **Physical vs Logical Time** (2 pts) - Understand Lamport clocks vs NTP
+4. **CAP & Eventual Consistency** (2 pts) - Core distributed systems concepts
+5. **Your NTP Client in Context** (2 pts) - Connect theory to your code
+
+**This is a required component worth 10 points.**
+
+---
+
 ## Deliverables
 
 Submit the following files:
 1. **`ntp-client.c`** - Your completed implementation
 2. **`protocol-investigation.md`** - Your TWO protocol investigations (follow format above)
-3. **`README.md`** - Brief description of your implementation approach and any challenges
+3. **`time-in-distributed-systems.md`** - Your distributed systems investigation (see AI-Distributed-Investigation.md)
+4. **`README.md`** - Brief description of your implementation approach and any challenges
 
 ## Grading Rubric
 
@@ -574,20 +613,29 @@ Submit the following files:
   - Investigation 1: 20 points
   - Investigation 2: 20 points
 
-**Total: 100 points**
+- **Distributed Systems Investigation**: 10 points
+  - Learning Process: 2 points
+  - Real-World Failure: 2 points
+  - Physical vs Logical Time: 2 points
+  - CAP & Eventual Consistency: 2 points
+  - Your NTP Client in Context: 2 points
+
+**Total: 110 points**
 
 ### Grade Scale
-- **A (90-100%)**: Demonstrates mastery of both implementation and protocol understanding
-- **B (80-89%)**: Solid implementation with good protocol analysis
-- **C (70-79%)**: Working implementation with basic protocol understanding
-- **D (60-69%)**: Minimal functionality and limited understanding
-- **F (0-59%)**: Does not meet requirements
+- **A (90-100%)**: Demonstrates mastery of implementation, protocol understanding, and distributed systems concepts (99-110 points)
+- **B (80-89%)**: Solid implementation with good protocol and systems analysis (88-98 points)
+- **C (70-79%)**: Working implementation with basic understanding (77-87 points)
+- **D (60-69%)**: Minimal functionality and limited understanding (66-76 points)
+- **F (0-59%)**: Does not meet requirements (0-65 points)
 
-### Bonus Opportunities (+5% each, max +15%)
+### Bonus Opportunities (+5 points each, max +15 points)
 - **Multi-server averaging**: Query multiple servers and average results
 - **Outlier detection**: Identify and handle servers with suspicious responses
 - **IPv6 support**: Extend client to work with IPv6
-- **Additional investigation**: Third protocol investigation of same quality
+- **Additional protocol investigation**: Third protocol investigation of same quality
+
+**Maximum possible points: 125 (110 base + 15 bonus)**
 
 ## Tips for Success
 
