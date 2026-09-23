@@ -1,0 +1,8 @@
+* Copyright (c) 1998-2026 Analog Devices, Inc.  All rights reserved.
+*
+.subckt xtl32 P1 P2
+Lm P1 N001 80.5574
+Cm N001 N002 300f
+Rm N002 P2 30k
+C0 P1 P2 1.35p
+.ends xtl32
