@@ -97,6 +97,8 @@ SET_NTP_LI_VN_MODE(packet, 3, 4, 3);
   
   *What's a leap second?* Earth's rotation isn't perfectly constant, so occasionally we add or remove a second to keep atomic time aligned with astronomical time. Most students can ignore this - just use "3" for client requests.
 
+  You will find other NTP client code that sends LI = 0 instead. Servers accept either; we use 3 because it is the honest answer for a client that has not synchronized yet.
+
 - **Version Number (3 bits)**: NTP protocol version
   - Always **4** for modern NTP (versions 1-3 are obsolete)
 
@@ -111,6 +113,8 @@ SET_NTP_LI_VN_MODE(packet, 3, 4, 3);
   - **0 = Unspecified** (for client requests - means "I don't know my level")
   - **1 = Primary server** (directly connected to atomic clock/GPS)
   - **2-15 = Secondary servers** (each level further from reference)
+  - **16 = Unsynchronized** (the server has no valid time source)
+  - In a *response*, stratum 0 means a **kiss-o'-death**: the server is refusing service, and the reference ID holds a 4-letter reason such as `RATE` (you are asking too often)
 
 - **Poll Interval (8 bits)**: Maximum time between messages (log₂ seconds)
   - **6 = 64 seconds** (2⁶ = 64, a reasonable default for clients)
@@ -126,23 +130,22 @@ An **epoch** is simply the starting point for counting time in a computer system
 
 **Unix Time (used by your computer):**
 - Starts: January 1, 1970, 00:00:00 UTC
-- Right now: ~1727789000 seconds since 1970
+- Mid-2020s: about 1.7-1.8 billion seconds since 1970 (try `date +%s`)
 - Why 1970? Unix was developed in early 1970s
 
 **NTP Time (used by time servers):**
 - Starts: January 1, 1900, 00:00:00 UTC
-- Right now: ~3936777800 seconds since 1900
+- Mid-2020s: about 3.9-4.0 billion seconds since 1900
 - Why 1900? Covers entire 20th century and beyond
 
 **Timeline Visualization:**
 ```
-1900 -------- 1970 -------- 2025
+1900 -------- 1970 -------- today
  |              |              |
 NTP             Unix           Now
-epoch           epoch          
-starts          starts         
- |<-- 70 years ->|<-- 55 years ->|
- |<------- 125 years total ----->|
+epoch           epoch
+starts          starts
+ |<-- 70 years ->|<-- 55+ years ->|
 ```
 
 **The Conversion:**
@@ -216,7 +219,12 @@ make
 
 # Check structure sizes (should be exactly 48 bytes)
 make check-structs
+
+# Query a local test server on another port (no root needed)
+./ntp-client -s localhost -p 12300
 ```
+
+Public NTP servers rate-limit clients that ask too often. Wait a few seconds between runs, and if a server sends a kiss-o'-death (see below), switch to a different server.
 
 ### Expected Results
 - Time offsets typically under 100 milliseconds for good servers
@@ -230,6 +238,10 @@ Your implementation includes several debugging helpers:
 - **Debug Mode (`-d` flag)**: Shows epoch conversion examples with real timestamps
 - **`debug_print_bit_fields()`**: Shows bit field breakdown with binary representation
 - **Sanity Check Ranges**: Verify your timestamps fall within expected ranges
+- **Response validation (provided)**: before using a response, the client checks that it really answers your request. If you see one of these messages, here is what it means:
+  - `origin timestamp does not match` - the server's echo of your T1 does not equal the T1 you sent. With a public server this almost always means a bug in your byte-order conversion (check `ntp_to_host()`), or in `build_ntp_request()`.
+  - `kiss-o'-death (code RATE)` - the server is telling you to slow down. Try another server.
+  - `server clock is not synchronized` - the server itself has no good time. Try another server.
 
 ---
 
@@ -293,8 +305,8 @@ SET_NTP_LI_VN_MODE(packet, NTP_LI_UNSYNC, NTP_VERSION, NTP_MODE_CLIENT);
 **What you implemented:**
 You converted all multi-byte fields:
 ```c
-packet->transmit_ts.seconds = htonl(seconds);
-// Later: seconds = ntohl(response.transmit_ts.seconds);
+packet->xmit_time.seconds = htonl(packet->xmit_time.seconds);
+// Later: response->xmit_time.seconds = ntohl(response->xmit_time.seconds);
 ```
 
 **Why investigate this:**
@@ -367,7 +379,7 @@ fraction = (usec * NTP_FRACTION_SCALE) / USEC_INCREMENTS;
 
 ### Submission Format
 
-**File:** place your solutions to the above in a file called `protocol-investigation.md` in your course repo.  It should have roughly the following structure:
+**File:** put your answers in `protocol-investigation.md` in your submission folder (see **Submission** below). It should have roughly the following structure:
 
 **Structure:**
 ```markdown
@@ -450,7 +462,7 @@ fraction = (usec * NTP_FRACTION_SCALE) / USEC_INCREMENTS;
 
 ---
 
-## Distributed Systems Investigation (10 points)
+## Distributed Systems Investigation (20 points)
 
 **NEW COMPONENT:** In addition to the protocol investigations, you'll complete a separate investigation exploring how time synchronization fits into distributed systems.
 
@@ -478,39 +490,57 @@ Your NTP implementation is one piece of a larger puzzle. This investigation help
 **See the complete instructions in:** [`ai-distributed-investigation.md`](ai-distributed-investigation.md)
 
 The investigation has 5 sections:
-1. **Learning Process** (2 pts) - Document your AI-assisted research
-2. **Real-World Failure** (2 pts) - Analyze a major time-related incident
-3. **Physical vs Logical Time** (2 pts) - Understand Lamport clocks vs NTP
-4. **CAP & Eventual Consistency** (2 pts) - Core distributed systems concepts
-5. **Your NTP Client in Context** (2 pts) - Connect theory to your code
+1. **Learning Process** (4 pts) - Document your AI-assisted research
+2. **Real-World Failure** (4 pts) - Analyze a major time-related incident
+3. **Physical vs Logical Time** (4 pts) - Understand Lamport clocks vs NTP
+4. **CAP & Eventual Consistency** (4 pts) - Core distributed systems concepts
+5. **Your NTP Client in Context** (4 pts) - Connect theory to your code
 
-**This is a required component worth 10 points.**
+**This is a required component worth 20 points.**
 
 ---
 
 ## Deliverables
 
-Submit the following files:
+Your submission folder must contain:
 1. **`ntp-client.c`** - Your completed implementation
 2. **`protocol-investigation.md`** - Your TWO protocol investigations (follow format above)
-3. **`time-in-distributed-systems.md`** - Your distributed systems investigation (see AI-Distributed-Investigation.md)
-4. **`README.md`** - Brief description of your implementation approach and any challenges
+3. **`time-in-distributed-systems.md`** - Your distributed systems investigation (see `ai-distributed-investigation.md`)
+4. **`implementation-notes.md`** - Brief description of your implementation approach and any challenges. (Do not name it `README.md`: on macOS that would overwrite this handout, `readme.md`.)
+5. All provided files (`ntp-protocol.h`, `makefile`, this `readme.md`, `ai-distributed-investigation.md`), unchanged
+
+## Submission
+
+All work is submitted through your **private GitHub repository**. Canvas receives only a link.
+
+1. Create a folder named **`02-NTP`** at the top level of your repository and copy everything from the course `assignment/` folder into it.
+2. Commit as you go. The TA looks for incremental work, not one final commit.
+3. When you are done, run `make clean`, make sure your deliverables are committed, and push. Do not commit the compiled `ntp-client` binary.
+4. Submit **only the link** to the folder on Canvas, for example:
+
+   ```text
+   https://github.com/<your-account>/<your-repo>/tree/main/02-NTP
+   ```
 
 ## Grading Rubric
 
-### NTP Client Implementation (60 points)
+### NTP Client Implementation (50 points)
 
-| Component | Excellent (54-60) | Good (48-53) | Satisfactory (42-47) | Needs Work (36-41) | Unsatisfactory (0-35) |
+Each component is scored on the same five levels: Excellent (90-100% of the component's points), Good (80-89%), Satisfactory (70-79%), Needs Work (60-69%), Unsatisfactory (below 60%).
+
+| Component (points) | Excellent | Good | Satisfactory | Needs Work | Unsatisfactory |
 |-----------|-------------------|--------------|----------------------|--------------------|-----------------------|
-| **Request Construction (15%)** | Request packet perfectly formatted, all fields correct, proper bit manipulation, network byte order handled | Request mostly correct, minor field or byte order issues | Request functional but some formatting issues | Request created but several errors affecting functionality | Request malformed or not implemented |
-| **Time Conversion (15%)** | Timestamp conversions flawless, handles epochs correctly, proper precision | Conversions work with minor precision issues | Conversions functional but may lose precision | Conversions work for basic cases but have notable errors | Conversions incorrect or missing |
-| **NTP Algorithm (15%)** | Perfect offset/delay calculations, handles edge cases | Algorithm correct with minor errors | Algorithm works for most cases, some calculation issues | Basic algorithm with several errors | Algorithm incorrect or missing |
-| **Output & Debugging (5%)** | Excellent formatting, comprehensive packet display, clear results | Good output, minor formatting issues | Basic output showing essential information | Output present but hard to read or incomplete | Poor or missing output |
-| **Code Quality (10%)** | Clean, well-commented code, excellent structure | Good organization, adequate comments | Functional, reasonably organized | Works but poorly organized/documented | Difficult to understand |
+| **Request Construction (10)** | Request packet perfectly formatted, all fields correct, proper bit manipulation, network byte order handled | Request mostly correct, minor field or byte order issues | Request functional but some formatting issues | Request created but several errors affecting functionality | Request malformed or not implemented |
+| **Time Conversion (15)** | Timestamp conversions flawless, handles epochs correctly, proper precision | Conversions work with minor precision issues | Conversions functional but may lose precision | Conversions work for basic cases but have notable errors | Conversions incorrect or missing |
+| **NTP Algorithm (15)** | Perfect offset/delay calculations, handles edge cases | Algorithm correct with minor errors | Algorithm works for most cases, some calculation issues | Basic algorithm with several errors | Algorithm incorrect or missing |
+| **Output & Debugging (5)** | Excellent formatting, comprehensive packet display, clear results | Good output, minor formatting issues | Basic output showing essential information | Output present but hard to read or incomplete | Poor or missing output |
+| **Code Quality (5)** | Clean, well-commented code, excellent structure | Good organization, adequate comments | Functional, reasonably organized | Works but poorly organized/documented | Difficult to understand |
 
 ### Protocol Design Investigation (30 points total - 15 points per investigation)
 
-| Criteria | Excellent (13-15) | Good (10-12) | Satisfactory (7-9) | Needs Work (0-6) |
+Each investigation is scored on the five criteria below, 3 points each (15 points per investigation).
+
+| Criteria (3 points each) | Excellent (3) | Good (2) | Satisfactory (1) | Needs Work (0) |
 |----------|-------------------|--------------|----------------------|-------------------|
 | **Implementation Context** | Clearly describes specific code written, identifies genuine puzzlement with concrete examples from testing | Describes implementation with some specifics, identifies area of confusion | Basic description of code, vague sense of what was unclear | Generic or missing context, no code references |
 | **Investigation Quality** | 6+ substantive questions showing clear progression, explores alternatives, challenges assumptions, uses test results | 5 questions with reasonable progression, some exploration of alternatives | 3-4 questions with limited progression, surface-level exploration | 1-2 questions or just copying AI responses |
@@ -519,23 +549,23 @@ Submit the following files:
 | **Personal Insight** | Clear "aha moment," shows changed understanding, articulates what surprised them and why | Shows learning occurred, reasonable insights | Surface-level insights, limited evidence of changed understanding | Generic statements, no evidence of learning |
 
 ### Point Distribution Summary
-- **NTP Client Implementation**: 60 points
-  - Request Construction: 15 points
+- **NTP Client Implementation**: 50 points
+  - Request Construction: 10 points
   - Time Conversion: 15 points  
   - NTP Algorithm: 15 points
   - Output & Debugging: 5 points
-  - Code Quality: 10 points
+  - Code Quality: 5 points
 
 - **Protocol Investigation**: 30 points
   - Investigation 1: 15 points
   - Investigation 2: 15 points
 
-- **Distributed Systems Investigation**: 10 points
-  - Learning Process: 2 points
-  - Real-World Failure: 2 points
-  - Physical vs Logical Time: 2 points
-  - CAP & Eventual Consistency: 2 points
-  - Your NTP Client in Context: 2 points
+- **Distributed Systems Investigation**: 20 points
+  - Learning Process: 4 points
+  - Real-World Failure: 4 points
+  - Physical vs Logical Time: 4 points
+  - CAP & Eventual Consistency: 4 points
+  - Your NTP Client in Context: 4 points
 
 **Total: 100 points**
 
@@ -579,24 +609,15 @@ Submit the following files:
 - [NTP Pool Project](https://www.pool.ntp.org/) - Public NTP servers
 - [NIST Time Services](https://www.nist.gov/pml/time-and-frequency-division/services/internet-time-service-its)
 
-## Academic Integrity
+## Using AI on This Assignment
 
-This assignment explicitly requires you to use AI for the protocol investigation component. However:
+AI tools are part of how software gets built now, and you are encouraged to use them: to explain a concept, to help read RFC 5905, to figure out why your timestamps say 1956, or to quiz you on why the offset formula works. Used that way, AI is one of the best learning tools you have.
 
-**For the Implementation (ntp-client.c):**
-- You may use AI to help understand concepts, debug errors, or clarify documentation
-- You must write and understand all code yourself
-- Simply asking AI to "complete the TODO functions" violates academic integrity
+The two investigations are *designed* around AI-assisted exploration. What we grade there is the quality of your questions, how your understanding develops, and how well you connect it back to your own code and test results. Pasting an AI's answer without that earns little.
 
-**For the Investigation (protocol-investigation.md):**
-- You MUST use AI to explore protocol design
-- Your investigation documents YOUR learning process
-- The quality of your questions and synthesis is what we grade
-- Just copying AI responses without investigation gets minimal credit
+For the code, use AI to understand and debug, and make sure you can explain every line you submit. Having an AI fill in the TODO functions for you may get you working code, but you will not be able to explain your own test results, and that is what the investigations and later quizzes ask for. Treat the assignment as practice for the moment someone asks you how network time actually works.
 
-**The Goal:** Learn to use AI as a tool for understanding, not as a tool for completion.
-
-If you're unsure whether something is appropriate, ask before submitting.
+If you are unsure whether something is appropriate, ask before submitting.
 
 ---
 

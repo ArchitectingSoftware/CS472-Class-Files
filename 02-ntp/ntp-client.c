@@ -17,6 +17,7 @@
  * COMPILE: make
  * RUN:     ./ntp-client
  *          ./ntp-client -s time.nist.gov
+ *          ./ntp-client -s localhost -p 12300   (local test server on port 12300)
  * 
  * STUDENT INSTRUCTIONS:
  * Complete all functions marked with "STUDENT TODO" below.
@@ -43,6 +44,10 @@
 #define DEFAULT_NTP_SERVER "pool.ntp.org"
 #define TIMEOUT_SECONDS 5
 
+// UDP port to query (-p option). Public servers always use 123; another
+// port is only useful with a local test server.
+static uint16_t g_ntp_port = NTP_PORT;
+
 /*
  * =============================================================================
  * PROVIDED FUNCTIONS - NETWORKING AND PROGRAM STRUCTURE
@@ -57,11 +62,20 @@ int main(int argc, char* argv[]) {
     
     // Parse command line arguments
     int opt;
-    while ((opt = getopt(argc, argv, "s:hd")) != -1) {
+    while ((opt = getopt(argc, argv, "s:p:hd")) != -1) {
         switch (opt) {
             case 's':
                 ntp_server = optarg;
                 break;
+            case 'p': {
+                long port = strtol(optarg, NULL, 10);
+                if (port < 1 || port > 65535) {
+                    fprintf(stderr, "Invalid port: %s\n", optarg);
+                    return 1;
+                }
+                g_ntp_port = (uint16_t)port;
+                break;
+            }
             case 'd':
                 // Debug mode - demonstrate epoch conversion
                 printf("=== DEBUG MODE ===\n");
@@ -95,9 +109,10 @@ int main(int argc, char* argv[]) {
 
 // Print usage information
 void usage(const char* progname) {
-    printf("Usage: %s [-s server] [-d] [-h]\n", progname);
+    printf("Usage: %s [-s server] [-p port] [-d] [-h]\n", progname);
     printf("\nOptions:\n");
     printf("  -s server    NTP server to query (default: %s)\n", DEFAULT_NTP_SERVER);
+    printf("  -p port      UDP port (default: %d; only for a local test server)\n", NTP_PORT);
     printf("  -d           Debug mode - show epoch conversion example\n");
     printf("  -h           Show this help\n");
     printf("\nExamples:\n");
@@ -182,8 +197,52 @@ int recv_ntp_response(int sockfd, ntp_packet_t* packet) {
     return 0;
 }
 
+/*
+ * Check that a response really answers OUR request before trusting any of
+ * its timestamps. UDP has no connection to do this for us. Returns 0 if the
+ * response is usable, -1 otherwise.
+ *
+ * - Mode must be 4 (server).
+ * - The origin timestamp must echo the transmit timestamp we sent (T1).
+ *   This is how an NTP client matches a reply to its request: a stale reply
+ *   or a spoofed one will not contain our exact T1.
+ * - Stratum 0 in a response is a "kiss-o'-death": the server is refusing
+ *   service, and the reference ID holds a 4-letter code such as RATE.
+ * - LI = 3 or stratum 16 means the server's own clock is not synchronized.
+ *
+ * Both packets must already be in host byte order.
+ */
+int validate_ntp_response(const ntp_packet_t* request, const ntp_packet_t* response) {
+    if (!request || !response) {
+        return -1;
+    }
+    if (GET_NTP_MODE(response) != NTP_MODE_SERVER) {
+        fprintf(stderr, "Rejecting response: mode %u, expected %d (server)\n",
+                GET_NTP_MODE(response), NTP_MODE_SERVER);
+        return -1;
+    }
+    if (response->orig_time.seconds != request->xmit_time.seconds ||
+        response->orig_time.fraction != request->xmit_time.fraction) {
+        fprintf(stderr, "Rejecting response: origin timestamp does not match the "
+                        "transmit timestamp we sent (stale or spoofed reply?)\n");
+        fprintf(stderr, "  Hint: check that ntp_to_host() converts orig_time.\n");
+        return -1;
+    }
+    if (response->stratum == 0) {
+        char code[5] = {0};
+        uint32_t id = htonl(response->reference_id);
+        memcpy(code, &id, 4);
+        fprintf(stderr, "Rejecting response: kiss-o'-death from server (code %s)\n", code);
+        return -1;
+    }
+    if (GET_NTP_LI(response) == NTP_LI_UNSYNC || response->stratum >= 16) {
+        fprintf(stderr, "Rejecting response: server clock is not synchronized\n");
+        return -1;
+    }
+    return 0;
+}
+
 // Main NTP query function - coordinates the entire NTP exchange
-// This function orchestrates the complete NTP protocol exchange
 int query_ntp_server(const char* server_name, const char* ip_str) {
     // Create UDP socket
     int sockfd = create_udp_socket();
@@ -195,14 +254,14 @@ int query_ntp_server(const char* server_name, const char* ip_str) {
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(NTP_PORT);
+    server_addr.sin_port = htons(g_ntp_port);
     if (inet_pton(AF_INET, ip_str, &server_addr.sin_addr) != 1) {
         fprintf(stderr, "Invalid IP address: %s\n", ip_str);
         close(sockfd);
         return -1;
     }
     
-    printf("Connecting to %s (%s) on port %d\n", server_name, ip_str, NTP_PORT);
+    printf("Connecting to %s (%s) on port %d\n", server_name, ip_str, g_ntp_port);
     
     // Build NTP request packet
     ntp_packet_t request_packet;
@@ -212,12 +271,13 @@ int query_ntp_server(const char* server_name, const char* ip_str) {
         return -1;
     }
     
+    // Send a network-byte-order COPY right away. Keeping request_packet in
+    // host order lets us print and validate it later, and sending before
+    // printing keeps printing time out of the measured delay.
+    ntp_packet_t wire_packet = request_packet;
+    ntp_to_net(&wire_packet);
     printf("\nSending NTP request...\n");
-    print_ntp_packet_info(&request_packet, "Request", IS_REQUEST);
-    
-    // Convert to network byte order first, then send
-    ntp_to_net(&request_packet);    
-    if (send_ntp_request(sockfd, &server_addr, &request_packet) < 0) {
+    if (send_ntp_request(sockfd, &server_addr, &wire_packet) < 0) {
         fprintf(stderr, "Failed to send NTP request\n");
         close(sockfd);
         return -1;
@@ -235,12 +295,20 @@ int query_ntp_server(const char* server_name, const char* ip_str) {
     ntp_timestamp_t recv_time;
     get_current_ntp_time(&recv_time);
     
-    // Convert both packets back to host byte order for processing
-    ntp_to_host(&request_packet);
+    // The request was sent before anything was printed; show it now
+    print_ntp_packet_info(&request_packet, "Request", IS_REQUEST);
+
+    // Convert the response to host byte order for processing
     ntp_to_host(&response_packet);
 
     printf("\nReceived NTP response from %s!\n", server_name);
     print_ntp_packet_info(&response_packet, "Response", IS_RESPONSE);
+
+    // Make sure this response really answers our request
+    if (validate_ntp_response(&request_packet, &response_packet) < 0) {
+        close(sockfd);
+        return -1;
+    }
     
     // Calculate time offset and delay using NTP algorithm
     ntp_result_t result;
@@ -294,8 +362,8 @@ void demonstrate_epoch_conversion(void) {
     printf("Same time in NTP:  %u seconds since 1900\n", ntp_seconds);
     printf("Difference:        %u seconds (70 years)\n", (uint32_t)NTP_EPOCH_OFFSET);
     printf("Human readable:    %s", ctime((time_t*)&tv.tv_sec));
-    printf("Valid NTP range:   ~3.9 billion seconds (for 2025)\n");
-    printf("Valid Unix range:  ~1.7 billion seconds (for 2025)\n");
+    printf("Valid NTP range:   ~3.9-4.0 billion seconds (mid-2020s)\n");
+    printf("Valid Unix range:  ~1.7-1.8 billion seconds (mid-2020s)\n");
 }
 
 /*
@@ -324,9 +392,9 @@ void demonstrate_epoch_conversion(void) {
  * - gettimeofday() - gets current time as seconds + microseconds
  * 
  * EXAMPLE BEHAVIOR:
- * If current time is Sept 15, 2025 13:36:14.541216 UTC:
- * - ntp_ts->seconds should be ~3933894574 (includes NTP_EPOCH_OFFSET)
- * - ntp_ts->fraction should be ~2324671300 (541216 microseconds converted)
+ * If current time is Sept 15, 2025 13:36:14.541216 UTC (Unix 1757943374):
+ * - ntp_ts->seconds should be 3966932174 (1757943374 + NTP_EPOCH_OFFSET)
+ * - ntp_ts->fraction should be about 2324505020 (541216 microseconds converted)
  * 
  * MATH HINT:
  * To convert microseconds to NTP fraction: (microseconds * 2^32) / 1,000,000
@@ -410,6 +478,8 @@ double ntp_time_to_double(const ntp_timestamp_t* timestamp) {
  * WHAT TO DO:
  * 1. Use ntp_time_to_string() to convert timestamp to string
  * 2. Print with appropriate label and timezone indicator
+ * 3. A timestamp of all zeros means "not set" (for example, the unused
+ *    timestamps in a request). Print "0 (not set)" instead of a 1900 date
  * 
  * KEY C FUNCTIONS TO USE:
  * - printf() - for formatted output
@@ -417,6 +487,8 @@ double ntp_time_to_double(const ntp_timestamp_t* timestamp) {
  * EXAMPLE BEHAVIOR:
  * Input: timestamp for current time, label="Transmit Time", local=1
  * Output: "Transmit Time: 2025-09-15 13:36:14.541216 (Local Time)"
+ * Input: all-zero timestamp, label="Receive Time (T2)"
+ * Output: "Receive Time (T2): 0 (not set)"
  */
 void print_ntp_time(const ntp_timestamp_t *ts, const char* label, int local){
     printf("print_ntp_time() - TO BE IMPLEMENTED - %s\n", label);
@@ -727,22 +799,25 @@ int calculate_ntp_offset(const ntp_packet_t* request,
  * Print detailed NTP packet information in human-readable format
  * 
  * WHAT TO DO:
- * 1. Print packet type header with label
+ * 1. Print a header with the label and the direction: packet_type is
+ *    IS_REQUEST (client to server) or IS_RESPONSE (server to client)
  * 2. Extract and print bit fields using GET_NTP_* macros:
  *    - Leap Indicator, Version, Mode
  * 3. Print basic fields: stratum, poll, precision
  * 4. Decode and print reference_id using decode_reference_id()
- * 5. Print root_delay and root_dispersion values
- * 6. Print all timestamps using print_ntp_time()
+ * 5. Print root_delay and root_dispersion in seconds using GET_NTP_Q1616_TS()
+ * 6. Print all timestamps using print_ntp_time(), always in LOCAL_TIME so
+ *    request and response times are easy to compare
  * 
  * KEY C FUNCTIONS TO USE:
  * - printf() - formatted output
  * - GET_NTP_LI(), GET_NTP_VN(), GET_NTP_MODE() - extract bit fields
+ * - GET_NTP_Q1616_TS() - decode root_delay and root_dispersion to seconds
  * - decode_reference_id() - decode reference field
  * - print_ntp_time() - format timestamps
  * 
  * EXAMPLE OUTPUT:
- * --- Response Packet ---
+ * --- Response Packet (server to client) ---
  * Leap Indicator: 0
  * Version: 4
  * Mode: 4
@@ -750,8 +825,8 @@ int calculate_ntp_offset(const ntp_packet_t* request,
  * Poll: 6
  * Precision: -24
  * Reference ID: [0x179b2826] 23.155.40.38
- * Root Delay: 23
- * Root Dispersion 1669
+ * Root Delay: 0.000351 seconds
+ * Root Dispersion: 0.025467 seconds
  * Reference Time: 2025-09-15 08:58:17.614668 (Local Time)
  * Original Time (T1): 2025-09-15 09:09:34.232246 (Local Time)
  * Receive Time (T2): 2025-09-15 09:09:34.348225 (Local Time)
@@ -779,10 +854,10 @@ void print_ntp_packet_info(const ntp_packet_t* packet, const char* label, int pa
 Server: pool.ntp.org
 Server Time: 2025-09-15 09:09:34.348244 (local time)
 Local Time:  2025-09-15 09:09:34.302108 (local time)
-Round Trip Delay: 0.069842
+Round Trip Delay: 0.069842 seconds
 
 Time Offset: 0.081058 seconds
-Final dispersion 0.034921
+Final Dispersion: 0.034921 seconds
 
 Your clock is running BEHIND by 81.06ms
 Your estimated time error will be +/- 34.92ms
@@ -793,6 +868,6 @@ void print_ntp_results(const ntp_result_t* result) {
     char cli_time_buff[TIME_BUFF_SIZE];
 
     printf("print_ntp_results() - TO BE IMPLEMENTED\n");
-    //Hint:  Note that you really dont have to do much here other than
-    //       Print out data that is passed in teh result arguement
+    //Hint:  You don't have to do much here other than
+    //       print the data passed in the result argument
 }

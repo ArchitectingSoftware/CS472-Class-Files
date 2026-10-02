@@ -4,7 +4,8 @@ TARGET = ntp-client
 SOURCES = ntp-client.c
 HEADERS = ntp-protocol.h
 
-# Build without unused-variable warnings
+# Default target: build, hiding the unused-variable/parameter warnings that
+# the TODO stubs produce. Use "make all" to see every warning.
 no-warn: CFLAGS := -Wall -Wextra -std=c99 -g -Wno-unused-variable -Wno-unused-parameter
 no-warn: $(TARGET)
 
@@ -49,7 +50,8 @@ check-structs: $(TARGET)
 # Show help
 help:
 	@echo "Available targets:"
-	@echo "  all          - Build the NTP client (default)"
+	@echo "  (default)    - Build, hiding unused warnings from TODO stubs"
+	@echo "  all          - Build with all warnings"
 	@echo "  test         - Test with default NTP server"
 	@echo "  test-server  - Test with different servers"
 	@echo "  check-structs- Verify struct sizes"

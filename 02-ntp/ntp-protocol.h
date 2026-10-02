@@ -81,22 +81,21 @@
  * 
  * Unix Time (used by your computer):
  * - Starts: January 1, 1970, 00:00:00 UTC
- * - Right now: ~1727789000 seconds since 1970
+ * - Mid-2020s: about 1.7-1.8 billion seconds since 1970 (run `date +%s`)
  * - Why 1970? Unix was developed in early 1970s
  * 
  * NTP Time (used by time servers):  
  * - Starts: January 1, 1900, 00:00:00 UTC
- * - Right now: ~3936777800 seconds since 1900
+ * - Mid-2020s: about 3.9-4.0 billion seconds since 1900
  * - Why 1900? Covers entire 20th century and beyond
  * 
  * Timeline Visualization:
- * 1900 -------- 1970 -------- 2025
+ * 1900 -------- 1970 -------- today
  *  |              |              |
  * NTP             Unix           Now
- * epoch           epoch          
- * starts          starts         
- *  |<-- 70 years ->|<-- 55 years ->|
- *  |<------- 125 years total ----->|
+ * epoch           epoch
+ * starts          starts
+ *  |<-- 70 years ->|<-- 55+ years ->|
  * 
  * The Conversion:
  * NTP_EPOCH_OFFSET = 2,208,988,800 seconds = exactly 70 years
@@ -150,15 +149,15 @@ typedef struct {
     uint8_t li_vn_mode;         // LI(2) + VN(3) + Mode(3) bits
     
     // Configuration fields  
-    uint8_t stratum;            // Stratum level (0-15)
+    uint8_t stratum;            // 0 = unspecified (or kiss-o'-death), 1-15, 16 = unsynchronized
     uint8_t poll;               // Poll interval (log2 seconds)
     int8_t precision;           // Clock precision (log2 seconds)
     
     // Root synchronization info (32-bit fixed point)
     // root_delay and root_dispersion encoded in Q16.16
-    // format, upper 16 bits is seconds, lower 16 bits
-    // are fractions of second, 1/2^16 or 65535 ticks
-    // per second, see the Q1616 helper macros to decode
+    // format: upper 16 bits are whole seconds, lower 16 bits
+    // are fractions of a second in units of 1/65536 s.
+    // Use GET_NTP_Q1616_TS() to decode to seconds.
     uint32_t root_delay;        // Total roundtrip delay to reference
     uint32_t root_dispersion;   // Total dispersion to reference
     uint32_t reference_id;      // Reference clock identifier
@@ -259,13 +258,11 @@ typedef struct {
 // The servers returned dispersion and delay is encoded such that the 
 // upper 16 bits are seconds, and the lower 16 bits are fractions
 // of a second, here are helpers to decode Q16.16 encoded numbers
-#define GET_NTP_Q1616_SEC(d) (d >> 16)
-#define GET_NTP_Q1616_FRAC(d) (d & 0xFFFF0000)
-// Returns a double number in seconds
-#define GET_NTP_Q1616_TS(d) ( \
-    (double)((GET_NTP_Q1616_SEC(d) * 1000) + \
-             (GET_NTP_Q1616_FRAC(d) / 65535.0)) \
-)
+#define GET_NTP_Q1616_SEC(d)  (((uint32_t)(d)) >> 16)
+#define GET_NTP_Q1616_FRAC(d) (((uint32_t)(d)) & 0x0000FFFF)
+// Returns the value in seconds as a double
+#define GET_NTP_Q1616_TS(d) \
+    ((double)GET_NTP_Q1616_SEC(d) + (double)GET_NTP_Q1616_FRAC(d) / 65536.0)
 
 // Improved utility macros for time conversion
 #define NTP_TO_UNIX_SECONDS(ntp_sec)    ((ntp_sec) - NTP_EPOCH_OFFSET)
@@ -281,20 +278,21 @@ typedef struct {
  * =============================================================================
  * 
  * Mistake 1: Forgot to convert epochs
- * - Symptom: Times show up as 1900 or way in the future
- * - Fix: Always add/subtract NTP_EPOCH_OFFSET
- * 
- * Mistake 2: Converting in wrong direction  
- * - Symptom: Times are 70 years off
- * - Fix: NTP times are BIGGER, Unix times are SMALLER
- * 
- * Mistake 3: Converting twice
- * - Symptom: Times are 140 years off
- * - Fix: Convert only once at the boundary between systems
- * 
- * Quick Sanity Check:
- * - Valid NTP time for 2025: ~3.9 billion seconds
- * - Valid Unix time for 2025: ~1.7 billion seconds
+ * - Symptom: dates around 1956 (Unix seconds read as NTP) or around 2095
+ *   (NTP seconds read as Unix)
+ * - Fix: Always add/subtract NTP_EPOCH_OFFSET at the boundary
+ *
+ * Mistake 2: Converting in the wrong direction, or converting twice
+ * - Symptom: dates 70 years off, or nonsense values from 32-bit wraparound
+ * - Fix: NTP times are BIGGER, Unix times are SMALLER; convert exactly once
+ *
+ * Mistake 3: Forgot to scale the fraction
+ * - Symptom: microseconds look random, or always .000000
+ * - Fix: usec -> fraction is (usec * 2^32) / 1,000,000, and back again
+ *
+ * Quick Sanity Check (mid-2020s):
+ * - Valid NTP time: about 3.9-4.0 billion seconds
+ * - Valid Unix time: about 1.7-1.8 billion seconds
  * - If your numbers don't match these ranges, check your conversion!
  */
 
@@ -440,5 +438,6 @@ int send_ntp_request(int sockfd, const struct sockaddr_in* server_addr,
                     const ntp_packet_t* packet);
 int recv_ntp_response(int sockfd, ntp_packet_t* packet);
 int query_ntp_server(const char* server_name, const char* ip_str);
+int validate_ntp_response(const ntp_packet_t* request, const ntp_packet_t* response);
 
 #endif

@@ -1,13 +1,13 @@
 # Time in Distributed Systems Investigation
 
-**Points:** 10 (required component)  
+**Points:** 20 (required component)  
 **File to submit:** `time-in-distributed-systems.md`
 
 ---
 
 ## Overview
 
-You've implemented an NTP client that synchronizes time across networks. But why does time synchronization matter so much in distributed systems? This investigation will help you understand the fundamental role of time in distributed computing and where your NTP implementation fits into the bigger picture.
+You've implemented an NTP client that measures how far your computer's clock is from a time server, and how uncertain that measurement is. But why does time synchronization matter so much in distributed systems? This investigation will help you understand the fundamental role of time in distributed computing and where your NTP implementation fits into the bigger picture.
 
 **Goal:** Understand core distributed systems concepts (logical clocks, CAP theorem, eventual consistency) and how physical time synchronization relates to them.
 
@@ -17,15 +17,15 @@ You've implemented an NTP client that synchronizes time across networks. But why
 
 Your investigation should have **5 sections** covering these topics:
 
-1. **Learning Process** (2 points) - Document your AI-assisted learning
-2. **Real-World Failure** (2 points) - Research a major time-related incident
-3. **Physical vs Logical Time** (2 points) - Understand why timestamps aren't enough
-4. **CAP & Eventual Consistency** (2 points) - Fundamental distributed systems tradeoffs
-5. **Your NTP Client in Context** (2 points) - Connect concepts to your implementation
+1. **Learning Process** (4 points) - Document your AI-assisted learning
+2. **Real-World Failure** (4 points) - Research a major time-related incident
+3. **Physical vs Logical Time** (4 points) - Understand why timestamps aren't enough
+4. **CAP & Eventual Consistency** (4 points) - Fundamental distributed systems tradeoffs
+5. **Your NTP Client in Context** (4 points) - Connect concepts to your implementation
 
 ---
 
-## Section 1: Learning Process (2 points)
+## Section 1: Learning Process (4 points)
 
 **Document your AI-assisted learning journey.**
 
@@ -46,35 +46,41 @@ Answer these questions:
    - What follow-up questions helped?
    - What analogies or examples made it click?
 
-**Format:** Write 1-2 paragraphs describing your learning process, including specific prompts you used.
+5. **What did you have to verify?**
+   - Name one thing an AI told you that turned out to be wrong, overstated, or that you could not confirm, and how you checked it.
+   - If everything checked out, describe how you verified one specific claim (for example, details of your Section 2 incident).
+   - AI tools sometimes invent incidents, dates, and numbers that sound completely plausible. Checking is part of using them well.
+
+**Format:** Write 1-2 paragraphs describing your learning process, including specific prompts you used and what you verified.
 
 ---
 
-## Section 2: When Time Goes Wrong - A Real Failure (2 points)
+## Section 2: When Time Goes Wrong - A Real Failure (4 points)
 
 **Research ONE major incident where time/synchronization issues caused significant problems.**
 
 ### Pick ONE of these incidents:
 
-1. **2012 Leap Second Bug**
-   - Reddit, LinkedIn, Yelp, FourSquare crashed simultaneously
-   - Linux kernel + NTP leap second handling issue
-   - Widespread impact across internet services
+1. **2012 Leap Second (June 30, 2012)**
+   - Reddit, LinkedIn, Yelp, Foursquare, Mozilla, and others had outages or overloaded servers at the same moment
+   - A Linux kernel bug in handling the inserted leap second left timers misbehaving, and many programs (Java applications, MySQL) spun at 100% CPU
 
-2. **Cloudflare 2017 Time Incident**
-   - Time went backwards by small amounts
-   - Caused massive DNS failures globally
-   - Took hours to diagnose and fix
+2. **Cloudflare DNS Leap Second (January 1, 2017)**
+   - A leap second made the system clock appear to go backwards by one second
+   - Cloudflare's DNS software computed a negative duration, which it assumed was impossible, and crashed
+   - About 0.2% of DNS queries failed at the peak; the worst-hit machines were patched in about 90 minutes
 
-3. **AWS 2014 Clock Drift**
-   - DynamoDB and other services affected
-   - Clock drift on some EC2 instances
-   - Data consistency issues
+3. **Microsoft Azure Leap Day (February 29, 2012)**
+   - Code that created security certificates computed "one year from today" by adding 1 to the year, producing February 29, 2013, a date that does not exist
+   - The failure cascaded into a major, hours-long outage across Azure
 
-4. **Knight Capital 2012**
-   - $440 million loss in 45 minutes
-   - High-frequency trading algorithms
-   - Timing issues in order execution
+4. **GPS Timing Error (January 26, 2016)**
+   - While a 25-year-old GPS satellite was being decommissioned, a ground-system software error made GPS broadcast UTC time about 13 microseconds off for roughly 12 hours
+   - Telecom networks and BBC digital radio transmitters that lock to GPS time reported problems
+
+You may choose a different time-related incident if it has a published postmortem or official report; check with the instructor first.
+
+**Cite your sources.** Include a link to at least one **primary source**: the company's own postmortem, an official report, or the actual bug report. News articles and AI summaries are fine for background, but they are not enough on their own. AI tools sometimes invent incidents or details that sound real, so confirm the facts you use.
 
 ### Answer these questions:
 
@@ -96,19 +102,19 @@ Answer these questions:
 4. **Connection to distributed systems concepts:**
    *(Come back to this after completing Sections 3-4)*
    - After learning about CAP and consistency, analyze:
-   - Did this system prioritize availability over consistency?
-   - Could logical clocks have helped prevent this?
-   - Was this fundamentally about clock accuracy or about coordination?
+   - Was the root problem a clock being *wrong*, or software assuming something about time that is not always true (for example, "time never goes backwards" or "every year has a February 29")?
+   - Could logical clocks have helped prevent this? Why or why not?
+   - Did the affected system favor availability or consistency when things went wrong?
 
-**Format:** Two paragraphs - one describing the incident, one analyzing it (complete the analysis after Section 4).
+**Format:** Two paragraphs - one describing the incident, one analyzing it (complete the analysis after Section 4) - plus your source link(s).
 
 ---
 
-## Section 3: Physical Time vs Logical Time (2 points)
+## Section 3: Physical Time vs Logical Time (4 points)
 
 **The fundamental challenge:** In distributed systems, you can't rely on wall-clock time alone to order events.
 
-### Part A: Why Physical Clocks Fail (1 point)
+### Part A: Why Physical Clocks Fail (2 points)
 
 **Use AI to research and answer:**
 
@@ -122,9 +128,13 @@ Answer these questions:
    - Which event happened first?
    - Can we know for certain? Why or why not?
 
+3. **Use your own numbers:**
+   - Your NTP client prints a "Final Dispersion," an estimate of how wrong a synchronized clock could still be.
+   - If two servers' clocks could each be off by that much, how far apart must two timestamps be before you can trust their order?
+
 **Answer in 3-4 sentences** showing you understand "timestamps ≠ guaranteed ordering"
 
-### Part B: Logical Clocks - The Alternative (1 point)
+### Part B: Logical Clocks - The Alternative (2 points)
 
 **Research Lamport Clocks using AI:**
 
@@ -149,11 +159,11 @@ Then answer:
 
 ---
 
-## Section 4: CAP Theorem and Eventual Consistency (2 points)
+## Section 4: CAP Theorem and Eventual Consistency (4 points)
 
 **The fundamental tradeoffs in distributed systems.**
 
-### Part A: CAP Theorem (1 point)
+### Part A: CAP Theorem (2 points)
 
 **Use AI to research CAP theorem:**
 
@@ -166,20 +176,22 @@ Then answer:
    - **A = Availability:** (define in one sentence)
    - **P = Partition tolerance:** (define in one sentence)
 
-2. **The theorem states:** "You can only guarantee _____ of the three properties"
+2. **The theorem states:** "When a network partition happens, a distributed system must choose between _____ and _____."
+
+   You will often see CAP summarized as "pick any two of three." That phrasing is misleading: in a real network, partitions are not optional, so the actual choice is what to give up *while* a partition lasts. Explain why in one or two sentences.
 
 3. **Real-world examples:**
-   Research and identify what these systems prioritize:
-   - Traditional bank databases (like MySQL): Choose _____ + _____
-   - Amazon DynamoDB: Choose _____ + _____
-   - DNS system: Choose _____ + _____
+   During a network partition, which does each of these favor, consistency or availability? Explain briefly.
+   - DNS (answers from cached records, which may be out of date)
+   - Amazon DynamoDB with its default reads (look up what "eventually consistent reads" means)
+   - A bank's account balances replicated across two data centers
 
-4. **How does time sync relate to CAP?**
-   - If you choose strong Consistency, do you need tight clock synchronization?
-   - If you choose Availability + Partition tolerance (AP), are loose clocks acceptable?
-   - Brief answer (2-3 sentences)
+4. **How does time sync relate to consistency?**
+   - Many strongly consistent systems (for example, those built on the Raft or Paxos protocols) order operations *without* trusting clocks at all. Why is that a safer design?
+   - Google Spanner is a famous exception: it uses tightly synchronized clocks (GPS and atomic clocks) and deliberately waits out its clock uncertainty before committing a transaction. Ask your AI why that wait makes timestamps safe to compare.
+   - If Spanner had to wait out an uncertainty as large as your client's Final Dispersion, how long would every commit take? (2-3 sentences)
 
-### Part B: Eventual Consistency (1 point)
+### Part B: Eventual Consistency (2 points)
 
 **Use AI to research:**
 
@@ -191,10 +203,11 @@ Then answer:
    - What does "eventual" mean?
    - Give one example (like DNS propagation)
 
-2. **Is NTP itself eventually consistent?**
-   - When you run your NTP client, does your clock instantly become perfect?
-   - Or does it gradually converge toward the correct time?
-   - Use AI to ask: "How does NTP adjust system clocks - instantly or gradually?"
+2. **How do clocks actually get corrected?**
+   - Your NTP client only *measures* the offset. It never changes your clock.
+   - Real time services (ntpd, chrony, and the services built into macOS and Windows) do correct it. Ask your AI: "Do NTP daemons step the clock or slew it, and when?"
+   - Why do they usually *slew* (speed up or slow down the clock slightly) instead of *stepping* (jumping straight to the right time)? Connect this to what went wrong in the 2012 leap second or Cloudflare incident.
+   - Is a slewing clock "eventually consistent" with the server? Explain.
 
 3. **Key insight:**
    - In an eventually consistent system, do you need perfect clock synchronization?
@@ -204,32 +217,31 @@ Then answer:
 
 ---
 
-## Section 5: Where Your NTP Client Fits (2 points)
+## Section 5: Where Your NTP Client Fits (4 points)
 
 **Connect everything you learned to your actual implementation.**
 
-### Part A: What Your Client Provides (1 point)
+### Part A: What Your Measurements Show (2 points)
 
-1. **Measure your implementation's accuracy:**
-   
-   Run your NTP client 3 times and record the offset values:
-   
+1. **Measure:**
+
+   Run your NTP client 3 times, using **at least two different servers** (for example `pool.ntp.org` and `time.nist.gov`). Wait at least a minute between runs: public servers limit how often a client may ask. Record:
+
    ```
-   Run 1: offset = ____ ms
-   Run 2: offset = ____ ms  
-   Run 3: offset = ____ ms
-   
-   Average offset: ____ ms
+   Run | Server         | Stratum | Offset (ms) | Delay (ms) | Final Dispersion (ms)
+   1   |                |         |             |            |
+   2   |                |         |             |            |
+   3   |                |         |             |            |
    ```
-   
+
    Typical NTP accuracy over the Internet: 10-100 milliseconds
 
-2. **Classify your client:**
-   - Does your NTP client provide **strong consistency** (all clocks always exactly synchronized)?
-   - Or does it provide **eventual consistency** (clocks converge over time)?
-   - Explain your answer based on what you learned in Section 4
+2. **Interpret:**
+   - The offset formula assumes the request and the reply spent equal time on the network. If they did not, the offset can be wrong by at most **half the delay**. For each run, is your offset larger than delay / 2? What does that tell you about whether your clock is actually off?
+   - Do the different servers agree with each other? What would it mean if they did not?
+   - Your computer's operating system normally keeps its clock synchronized on its own. Based on your numbers, does yours appear to be doing that? Explain using your measurements.
 
-### Part B: Understanding the Big Picture (1 point)
+### Part B: Understanding the Big Picture (2 points)
 
 **Synthesis questions - connect all the concepts:**
 
@@ -269,8 +281,9 @@ Then answer:
 - Clear section headers using markdown (# Section 1, ## Part A, etc.)
 - Proper markdown formatting (code blocks, lists, emphasis)
 - 2-4 pages total (roughly 800-1500 words)
-- Evidence of AI tool usage (show specific prompts in Section 1)
-- Actual measurements from your NTP client in Section 5
+- Evidence of AI tool usage (show specific prompts in Section 1), including one thing you verified
+- A link to at least one primary source for your Section 2 incident
+- Your measurement table from Section 5 (at least two servers)
 
 ### Markdown Formatting Examples:
 
@@ -293,37 +306,37 @@ Run 1: offset = 23 ms
 
 ---
 
-## Grading Rubric (10 points)
+## Grading Rubric (20 points)
 
 | Section | Points | Excellent (Full Points) | Satisfactory (Partial) | Needs Work (Minimal) |
 |---------|--------|-------------------------|------------------------|----------------------|
-| **Learning Process** | 2 | Clear prompts with evidence of iterative learning | Some prompts but vague process | No specific prompts or evidence |
-| **Real-World Failure** | 2 | Clear incident + thoughtful analysis connecting to concepts | Incident described but weak analysis | Wrong incident or no connection |
-| **Physical vs Logical** | 2 | Strong understanding that timestamps ≠ ordering, explains Lamport clocks clearly | Basic understanding with gaps | Superficial or incorrect |
-| **CAP & Consistency** | 2 | All concepts correct, clear understanding of tradeoffs | Most concepts correct, some confusion | Missing or incorrect |
-| **Your Implementation** | 2 | Measurements + thoughtful synthesis showing deep understanding | Measurements but weak synthesis | Missing measurements or superficial |
+| **Learning Process** | 4 | Clear prompts with evidence of iterative learning, and a specific claim they verified | Some prompts but vague process, or no verification | No specific prompts or evidence |
+| **Real-World Failure** | 4 | Accurate incident with a primary source + thoughtful analysis connecting to concepts | Incident described but weak analysis or no primary source | Inaccurate or invented details, or no connection |
+| **Physical vs Logical** | 4 | Strong understanding that timestamps ≠ ordering, explains Lamport clocks clearly | Basic understanding with gaps | Superficial or incorrect |
+| **CAP & Consistency** | 4 | All concepts correct, clear understanding of tradeoffs | Most concepts correct, some confusion | Missing or incorrect |
+| **Your Implementation** | 4 | Measurement table from 2+ servers, correct delay / 2 reasoning, and thoughtful synthesis | Measurements but weak interpretation | Missing measurements or superficial |
 
 ### Grading Notes:
 
-**Full Points (9-10):**
+**Full Points (18-20):**
 - Shows deep understanding of all concepts
 - Clear connection to real-world failures
 - Thoughtful analysis of their own implementation
 - Evidence of genuine learning through AI interaction
 
-**Satisfactory (7-8):**
+**Satisfactory (14-17):**
 - Understands most concepts with minor gaps
 - Describes incident but analysis could be deeper
 - Basic connection to their implementation
 - Some evidence of AI-assisted learning
 
-**Needs Work (5-6):**
+**Needs Work (10-13):**
 - Surface-level understanding
 - Weak or missing analysis
 - Little connection between concepts
 - Minimal evidence of learning
 
-**Insufficient (0-4):**
+**Insufficient (0-9):**
 - Major misconceptions
 - Missing sections
 - No evidence of AI usage
@@ -374,7 +387,7 @@ Your NTP client is a small but important piece of the distributed systems puzzle
 - Your AI tool of choice (ChatGPT, Claude, Gemini, etc.)
 - [Lamport's "Time, Clocks" paper](https://lamport.azurewebsites.net/pubs/time-clocks.pdf) - optional, if you want the original
 - Your NTP implementation and test results
-- Incident reports (use AI to find them, or search for the specific incidents listed)
+- Incident reports: search for the company's own postmortem or an official report (AI can help you find them, but read the source itself)
 
 ---
 
