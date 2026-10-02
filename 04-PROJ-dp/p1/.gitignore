@@ -1,0 +1,13 @@
+# dp project: build outputs and scratch logs (do not commit)
+*.o
+dp-client
+dp-server
+dp-log
+client-*.log
+server-*.log
+merged-*.log
+hol-*.log
+hol-results.txt
+hol-raw.txt
+.nfs*
+# evidence/ uses .txt files and IS committed
